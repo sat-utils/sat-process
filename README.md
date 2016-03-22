@@ -17,6 +17,7 @@ This is a base library used for creating data specific processing libraries and 
 Band names are used instead of band numbers, which are unique to each sensor. The average ranges for spectral bandpasses are given in the table below, along with the band numbers for several sensors.
 
 | Band Name | Band Ranges | Landsat 5 | Landsat 7 | Landsat 8 | Sentinel 1 | Sentinel 2 | MODIS |
+| --------- |:-----------:|:---------:|:---------:|:---------:|:----------:|:----------:|:-----:|
 | Coastal   | 0.40 - 0.45 |           |           | 1         |            | 1          |       |
 | Blue      | 0.45 - 0.5  | 1         | 1         | 2         |            | 2          | 3     |
 | Green     | 0.5 - 0.6   | 2         | 2         | 3         |            | 3          | 4     |
