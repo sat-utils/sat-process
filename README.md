@@ -2,14 +2,18 @@
 
 This is a base library used for creating data specific processing libraries and command line utilities.
 
-
-
-
-
 - Platform: the satellite or platform carrying the sensor
 - Sensor: a specific sensor, not the satellite (e.g., ETM+ not L7, OLI not L8, etc)
 - Scene: a collection of products, all of which share the same time stamp and spatial footprint.
 - Product: A product is a single band of data, which could be raw (red pixel counts), or derived from other products (e.g., ndvi)
+
+Process remote sensing images with this library using two main steps:
+
+1. Assemble all required bands and metadata into a Scene object
+
+2. Create process object with the Scene object and desired functions
+
+
 
 
 ### Standard Band Names
