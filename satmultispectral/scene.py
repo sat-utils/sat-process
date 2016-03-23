@@ -15,6 +15,13 @@ class Scene(object):
     """ A scene may consist of multiple bands but is for an identical
         spatial footprint and timestamp """
 
+    _bands = {
+        1: 'Red',
+        2: 'Green',
+        3: 'Blue',
+        4: 'NIR',
+    }
+
     _products = {
         'rad': {
             'description': 'Apparent radiance',
@@ -28,17 +35,17 @@ class Scene(object):
             'args': None,
             'f': None,
         },
-        'pan': {
-            'description': 'Pansharpen band using pan band',
-            'dependencies': ['pan'],
-            'f': algs.pan,
-            'args': None
-        },
+        #'pan': {
+        #    'description': 'Pansharpen band using pan band',
+        #    'dependencies': ['pan'],
+        #    'f': algs.pan,
+        #    'args': None
+        #},
         'ndvi': {
             'description': 'Normalized Difference Vegetation Index from TOA reflectance',
             # these aren't actually products yet
             'dependencies': ['red-toa', 'nir-toa'],
-            'f': algs.ndvi,
+            'f': (lambda geoimg, fout, **kwargs: algs.Indices(geoimg, {'NDVI': fout})),
             'args': ['color'],
         }
     }
@@ -55,7 +62,6 @@ class Scene(object):
             if ind != -1:
                 product = bname[ind+1:]
                 if product in cls._products.keys():
-                    print 'here'
                     filenames[product] = f
         if len(filenames) > 0:
             return cls(filenames)
@@ -89,17 +95,15 @@ class Scene(object):
             fout = os.path.join(self.path, self.geoimg.Basename() + '_' + p)
             self._products['f'](geoimg, fout, **kwargs)
 
-    def set_metadata(self):
-        """ Set custom metadata on geoimg based on sensor """
-        pass
 
     @classmethod
     def add_product_parser(cls, parser):
         """ Add arguments to command line parser """
+        # TODO - right now only T/F switches, no args handled
         group = parser.add_argument_group('Products')
-        for p, vals in cls._products.items():
+        for p, prod in cls._products.items():
             #if vals['args'] is None:
-            group.add_argument('--%s' % p, help=vals['description'], default=False, action='store_true')
+            group.add_argument('--%s' % p, help=prod['description'], default=False, action='store_true')
             #else:
             #    group.add_argument('--%s' % p, help=vals['description'], nargs='%s' % len(vals['args']))
         return parser
