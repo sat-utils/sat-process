@@ -20,6 +20,7 @@ class Sentinel2Scene(Scene):
     }
 
     _products = {
+        # original products
         'coastal': {
             'description': 'Coastal band (~0.43um) TOA',
             'dependencies': [],
@@ -51,8 +52,8 @@ class Sentinel2Scene(Scene):
         # derived products
         'ndvi': {
             'description': 'Normalized Difference Vegetation Index from TOA reflectance',
-            'dependencies': ['RED', 'NIR'],
-            'f': (lambda geoimg, fout, **kwargs: algs.Indices(geoimg, {'NDVI': fout})),
+            'dependencies': ['red', 'nir'],
+            'f': (lambda geoimg, fout, **kwargs: algs.Indices(geoimg, {'ndvi': fout})),
         }
     }
 
@@ -60,9 +61,10 @@ class Sentinel2Scene(Scene):
 
     def open(self, filenames):
         """ Open a Landsat8 scene """
-        super(Sentinel2Scene, self).open(filenames)
-        self.geoimg.SetNoData(0)
+        geoimg = super(Sentinel2Scene, self).open(filenames)
+        geoimg.SetNoData(0)
         # read MTL and set data on self.geoimg
         # get gains/offsets for radiance, reflectance, etc.
         # get clouds, dynamic range
         # get geometry
+        return geoimg
