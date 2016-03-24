@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from satmultispectral import Scene
+from satmultispectral.sentinel2 import Sentinel2Scene as Scene
 
 '''
     Basic command line parser for processing
@@ -21,7 +21,10 @@ if __name__ == '__main__':
 
     if args.indir is not None:
         # read scene from directory
-        scene = Scene.open_from_directory(args.indir)
+        scene = Scene.create_from_directory(args.indir)
+        # 1 - collect product arguments
+        # 2 - generate output filenames
+        # 3 - call scene.process(products)
     else:
         for sid in args.sceneids:
             fname = os.path.join(args.indir, sid)
