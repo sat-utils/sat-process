@@ -13,6 +13,6 @@ setup(
     version=__version__,
     description='Multispectral processing on geospatial raster data',
     packages=find_packages(),
-    scripts=['bin/sat-multispectral'],
+    scripts=['bin/landsat8', 'bin/sentinel2'],
     install_requires=['gippy'],
 )
