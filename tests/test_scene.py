@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import shutil
 import unittest
 from sprocess import Scene
 import gippy
@@ -22,8 +23,8 @@ class _BaseTestScene(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """ Clean up after tests """
-        print 'remove ndvi-test.tif'
-        # os.remove('ndvi-test.tif')
+        print 'remove %s' % cls.testdir
+        #shutil.rmtree(cls.testdir)
 
     def test_create_from_directory(self):
         """ Test creating a scene from directory of images """
@@ -41,7 +42,7 @@ class _BaseTestScene(unittest.TestCase):
 
 
 class TestScene(_BaseTestScene):
-    """ Perform testing with generic images """
+    """ Perform all _BaseTestScene tests with small generic images """
 
     @classmethod
     def setUpClass(cls):

@@ -171,12 +171,26 @@ class NDVI(Product):
 
     def process(self, **kwargs):
         geoimg = super(NDVI, self).process(**kwargs)
-        prods = {'ndvi': self.outfile}
-        fouts = algs.Indices(geoimg, prods)
-        # add the single filename
-        # TODO - improve this whole single file vs multiple file fiasco
-        self.files = ImageFiles(fouts.values()[0])
-        return self.files.open()
+        if self.files is None:
+            prods = {'ndvi': self.outfile}
+            fouts = algs.Indices(geoimg, prods)
+            self.files = ImageFiles(fouts.values()[0])
+            geoimg = self.files.open()
+        return geoimg
+
+
+class Indices(Product):
+    description = 'Band Indices'
+    dependencies = {
+        'toa': {}
+    }
+
+    def process(self, **kwargs):
+        geoimg = super(NDVI, self).process(**kwargs)
+        # get complete product list from kwargs
+        #fouts = algs.Indices(geoimg, prods)
+        #self.files = ImageFiles(fouts.values())
+        return None
 
 
 class Color(Product):
