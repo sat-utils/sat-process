@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 from scene import Scene
-import gippy.algorithms as algs
+from product import Product, NDVI
 
 
-class Sentinel2Scene(Scene):
-    """ A tile of Sentinel data for same timestamp and spatial region
-        and possibly containing multiple bands """
+class TOA(Product):
+    description = 'Top of the Atmosphere Reflectance'
 
-    _bands = {
+    _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
         'B03': 'green',
@@ -19,52 +18,26 @@ class Sentinel2Scene(Scene):
         'B12': 'swir2'
     }
 
+    @classmethod
+    def pattern(cls):
+        """ Regular expression for matching product files """
+        return r'(.*)_(B.*)\.jp2$'
+
+    def process(self, **kwargs):
+        """ Create TOA """
+        geoimg = super(TOA, self).process(**kwargs)
+        geoimg.SetNoData(0)
+        geoimg.SetGain(0.0001)
+        return geoimg
+
+
+class Sentinel2Scene(Scene):
+    """ A tile of Sentinel data for same timestamp and spatial region
+        and possibly containing multiple bands """
+
     _products = {
         # original products
-        'coastal': {
-            'description': 'Coastal band (~0.43um) TOA',
-            'dependencies': [],
-            'args': None,
-            'f': None,
-        },
-        'blue': {
-            'description': 'Blue band TOA',
-        },
-        'green': {
-            'description': 'Green band TOA',
-        },
-        'red': {
-            'description': 'Red band TOA',
-        },
-        'nir': {
-            'description': 'Near IR band TOA',
-        },
-        'cirrus': {
-            'description': 'Cirrus cloud detection band (~1.38um) TOA',
-        },
-        'swir1': {
-            'description': 'Shortwave IR band (~1.65um) TOA',
-        },
-        'swir2': {
-            'description': 'Shortwave IR band (~2.2um) TOA',
-        },
-
-        # derived products
-        'ndvi': {
-            'description': 'Normalized Difference Vegetation Index from TOA reflectance',
-            'dependencies': ['red', 'nir'],
-            'f': (lambda geoimg, fout, **kwargs: algs.Indices(geoimg, {'ndvi': fout})),
-        }
+        TOA.name(): TOA,
+        # dervied products
+        NDVI.name(): NDVI
     }
-
-    _pattern = '*.jp2'
-
-    def open(self, filenames):
-        """ Open a Landsat8 scene """
-        geoimg = super(Sentinel2Scene, self).open(filenames)
-        geoimg.SetNoData(0)
-        # read MTL and set data on self.geoimg
-        # get gains/offsets for radiance, reflectance, etc.
-        # get clouds, dynamic range
-        # get geometry
-        return geoimg

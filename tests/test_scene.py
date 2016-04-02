@@ -3,12 +3,21 @@
 import os
 import unittest
 from satmultispectral import Scene
-from nose.tools import set_trace
+import gippy
 
 
-class _TestScene(unittest.TestCase):
+class _BaseTestScene(unittest.TestCase):
 
     scene = Scene
+
+    sceneid = 'test'
+
+    testdir = os.path.join(os.path.dirname(__file__), 'images')
+
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.exists(cls.testdir):
+            os.mkdir(cls.testdir)
 
     @classmethod
     def tearDownClass(cls):
@@ -16,18 +25,40 @@ class _TestScene(unittest.TestCase):
         print 'remove ndvi-test.tif'
         # os.remove('ndvi-test.tif')
 
-    def create_from_directory(self):
-        """ Open test image from directory """
-        return self.scene.create_from_directory(self.input_dir, pattern=self.scene._pattern)
-
-    def _test_create_from_directory(self):
+    def test_create_from_directory(self):
         """ Test creating a scene from directory of images """
-        scene = self.create_from_directory()
-        geoimg = scene.open_all_products()
-        self.assertTrue(geoimg.Basename, self.sceneid)
+        scene = self.scene.seed_from_directory(self.testdir)
+        geoimg = scene.process('toa')
+        self.assertTrue(geoimg.Basename(), self.sceneid)
 
     # generalize this into loop through test all products
     def test_ndvi(self):
         """ Test calculating NDVI product """
-        scene = self.create_from_directory()
-        scene.process({'ndvi': {'fout': 'tests/%s_test-ndvi.tif' % self.sceneid}})
+        scene = self.scene.seed_from_directory(self.testdir)
+        scene.process('ndvi', outfile=os.path.join(self.testdir, '%s_ndvi.tif' % self.sceneid))
+        # check with numpy against original band
+        #geoimg1 = scene.products['']
+
+
+class TestScene(_BaseTestScene):
+    """ Perform testing with generic images """
+
+    @classmethod
+    def setUpClass(cls):
+        """ Create some test images """
+        super(TestScene, cls).setUpClass()
+        fout = os.path.join(cls.testdir, '%s_dc.tif' % cls.sceneid)
+        if not os.path.exists(fout):
+            geoimg = gippy.GeoImage(fout, 100, 100, 4, gippy.DataType('Float64'))
+            # geoimg.SetBandNames(['blue', 'green', 'red', 'nir'])
+            geoimg.SetBandName('blue', 1)
+            geoimg.SetBandName('green', 2)
+            geoimg.SetBandName('red', 3)
+            geoimg.SetBandName('nir', 4)
+        else:
+            geoimg = gippy.GeoImage(fout)
+        geoimg['nir'] = geoimg['nir'] + 2
+        geoimg['red'] = geoimg['red'] + 1
+        # save with some values for nir and red
+        geoimg.Process()
+        geoimg = None

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from test_scene import _TestScene
+from test_scene import _BaseTestScene
 import unittest
 from satmultispectral.sentinel2 import Sentinel2Scene
 
 
-class TestSentinel2(_TestScene):
+class _TestSentinel2(_BaseTestScene):
 
     scene = Sentinel2Scene
     sceneid = 'test'
@@ -19,3 +19,10 @@ class TestSentinel2(_TestScene):
     def tearDownClass(cls):
         """ Clean up after tests """
         pass
+
+    def test_save_toa(self):
+        """ Save original files to GeoTiff """
+        scene = self.scene.seed_from_directory(self.input_dir)
+        scene.process('toa', outpath=self.testdir)
+
+

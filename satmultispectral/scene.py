@@ -2,154 +2,77 @@
 
 import os
 import glob
-import gippy
-import gippy.algorithms as algs
-
+import product
 from nose.tools import set_trace
-
-""" Create a Scene with dictionary of filenames indicating filename for each
-    band """
 
 
 class Scene(object):
-    """ A scene may consist of multiple bands but is for an identical
-        spatial footprint and timestamp """
+    """ A scene may consist of multiple products (which may be multiple bands)
+        but covers an identical spatial footprint and timestamp """
 
-    # example band filename designator vs standard band names, override in child class
-    _bands = {
-        'B1': 'Red',
-        'B2': 'Green',
-        'B3': 'Blue',
-        'B4': 'NIR',
-    }
-
-    # example products
+    # example available products - each is a Product child class
     _products = {
-        'coastal': {
-            'description': 'Coastal band (~0.43um) TOA',
-            'dependencies': [],
-            'args': None,
-            'f': None,
-        },
-        'pan': {
-            'description': 'Panchromatic band TOA',
-        },
-        'blue': {
-            'description': 'Blue band TOA',
-        },
-        'green': {
-            'description': 'Green band TOA',
-        },
-        'red': {
-            'description': 'Red band TOA',
-        },
-        'nir': {
-            'description': 'Near IR band TOA',
-        },
-        'cirrus': {
-            'description': 'Cirrus cloud detection band (~1.38um) TOA',
-        },
-        'swir1': {
-            'description': 'Shortwave IR band (~1.65um) TOA',
-        },
-        'swir2': {
-            'description': 'Shortwave IR band (~2.2um) TOA',
-        },
-
-        # derived products
-        'ndvi': {
-            'description': 'Normalized Difference Vegetation Index from TOA reflectance',
-            'dependencies': ['RED', 'NIR'],
-            'f': (lambda geoimg, fout, **kwargs: algs.Indices(geoimg, {'NDVI': fout})),
-        }
+        product.DC.name(): product.DC,
+        product.TOA.name(): product.TOA,
+        product.NDVI.name(): product.NDVI,
+        # 'color': product.Color,
     }
 
-    def __init__(self, filenames):
-        """ Create a Scene instance with dict of {product: filename, ...} """
-        try:
-            self.open(filenames)
-        # TODO better exception handling
-        except Exception, e:
-            print e
-            raise Exception('unable to create image')
-        # this is current list of available products
-        self.products = filenames
+    def __init__(self, products, basename=''):
+        """ Create a Scene instance with list of Product classes """
+        # save in dictionary with key as product name
+        self.products = {p.name(): p for p in products}
+        self.basename = basename
 
-    def open_products(self, products):
-        """ Get GeoImage of these products [prod1, prod2] """
-        # all requested products available
-        assert all([p in self.products for p in products])
-        return self.open({p: self.products[p] for p in products})
+    def available_products(self):
+        """ Get list of available products (based on existing products) """
+        # TODO - take into account bands, and what bands available in input products, etc
+        return self._products.keys()
 
-    def open_all_products(self):
-        """ Get GeoImage of all products """
-        return self.open(self.products)
+    def process(self, product, outfile=None, outpath='./', **kwargs):
+        """ Process this product if not already processed """
+        if product not in self._products.keys():
+            raise IOError("Product %s not available" % product)
+        # if not already processed
+        if product not in self.products:
+            # process dependencies
+            depend = self._products[product].dependencies
+            for d in depend:
+                # what about passing in options when dependencies processed in this way?
+                self.process(d)
+            input_products = [self.products[d] for d in depend]
+            # create new product from dependencies as input
+            self.products[product] = self._products[product](input_products)
 
-    @classmethod
-    def open(cls, filenames):
-        """ Open series of products """
-        bands = sorted(filenames.keys())
-        fnames = [filenames[f] for f in sorted(filenames.keys())]
-        geoimg = gippy.GeoImage(fnames)
-        for i, b in enumerate(bands):
-            geoimg.SetBandName(b, i+1)
-        return geoimg
+        # saving and processing product, get geomage ?
+        if outfile is None:
+            outfile = os.path.join(outpath, self.basename + '_' + product)
 
-    def process(self, products):
-        """ Generate these products for this scene {'product': {options}} """
-        for p in products:
-            # if not already available
-            if p not in self.products:
-                depend = self._products[p].get('dependencies')
-                print p, self._products
-                if not depend:
-                    raise IOError("Product %s not available" % p)
-                if depend:
-                    # process dependencies without options
-                    self.process({d: {} for d in depend})
-                    # open GeoImage of dependencies
-                    geoimg = self.open_products(depend)
-                    # process into product
-                    kwargs = products[p]
-                    if 'fout' in kwargs:
-                        fout = kwargs['fout']
-                        del kwargs['fout']
-                    else:
-                        # create filename based on input and product name
-                        fout = os.path.join(self.path, geoimg.Basename() + '_' + p)
-                    # call product function
-                    self._products[p]['f'](geoimg, fout, **kwargs)
-                    # save to current list of available products
-                    self.products[p] = fout
+        return self.products[product].process(outfile=outfile, **kwargs)
 
     @classmethod
-    def parse_directory(cls, directory, pattern='*.TIF'):
-        """ Parse a directory for files with a _product suffix """
-        assert os.path.isdir(directory)
-        found = glob.glob(os.path.join(directory, pattern))
-        filenames = {}
-        for f in found:
-            bname = os.path.basename(os.path.splitext(f)[0])
-            ind = bname.rfind('_')
-            if ind != -1:
-                product = bname[ind+1:]
-                if product in cls._bands.keys():
-                    # use standard band name
-                    filenames[cls._bands[product]] = f
-                if product in cls._products.keys():
-                    # or if already existing product
-                    filenames[product] = f
-        return filenames
+    def seed_from_filenames(cls, filenames, **kwargs):
+        """ Parse a list of filenames and seed a scene """
+        products = []
+        for p in cls._products:
+            prod = cls._products[p].create_from_filenames(filenames)
+            if prod is not None:
+                products.append(prod)
+        return cls(products, **kwargs)
+
+    # @classmethod
+    # def seed_from_filenames_dict(cls, filenames, **kwargs):
+    #    """ Factory to create Scene from dictionary of filenames {product: {band: filename}} """
+    #    products = [cls._products[p](filenames[p]) for p in filenames]
+    #    return cls(products, **kwargs)
 
     @classmethod
-    def create_from_directory(cls, directory, pattern='*.TIF'):
-        """ Factory function to create scene from dir of products
-            where filename is in the form sceneid_product """
-        filenames = cls.parse_directory(directory, pattern=pattern)
-        if len(filenames) > 0:
-            return cls(filenames)
-        else:
+    def seed_from_directory(cls, directory):
+        """ Factory to create scene from dir of files """
+        filenames = glob.glob(os.path.join(directory, '*'))
+        if len(filenames) == 0:
             raise IOError("No scene data found in directory %s" % directory)
+        return cls.seed_from_filenames(filenames)
 
     @classmethod
     def add_product_parser(cls, parser):
@@ -157,8 +80,8 @@ class Scene(object):
         # TODO - right now only T/F switches, no args handled
         group = parser.add_argument_group('Products')
         for p, prod in cls._products.items():
-            #if vals['args'] is None:
+            # if vals['args'] is None:
             group.add_argument('--%s' % p, help=prod['description'], default=False, action='store_true')
-            #else:
+            # else:
             #    group.add_argument('--%s' % p, help=vals['description'], nargs='%s' % len(vals['args']))
         return parser
