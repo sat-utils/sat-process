@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import imp
 
 
-__version__ = imp.load_source('satmultispectral.version', 'satmultispectral/version.py').__version__
+__version__ = imp.load_source('sprocess.version', 'sprocess/version.py').__version__
 
 
 setup(

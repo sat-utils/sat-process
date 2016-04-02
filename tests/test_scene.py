@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from satmultispectral import Scene
+from sprocess import Scene
 import gippy
 
 

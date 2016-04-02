@@ -2,7 +2,7 @@
 
 from test_scene import _BaseTestScene
 import gippy
-from satmultispectral.landsat8 import Landsat8Scene
+from sprocess.landsat8 import Landsat8Scene
 
 
 class _TestLandsat8(_BaseTestScene):

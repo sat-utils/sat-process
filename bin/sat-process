@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from satmultispectral import Scene
+from sprocess import Scene
 
 '''
     Basic command line parser for processing

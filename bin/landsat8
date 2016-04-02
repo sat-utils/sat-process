@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from satmultispectral.landsat8 import Landsat8Scene as Scene
+from sprocess.landsat8 import Landsat8Scene as Scene
 
 '''
     Basic command line parser for processing

@@ -2,7 +2,7 @@
 
 from test_scene import _BaseTestScene
 import unittest
-from satmultispectral.sentinel2 import Sentinel2Scene
+from sprocess.sentinel2 import Sentinel2Scene
 
 
 class _TestSentinel2(_BaseTestScene):
