@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
 from test_scene import _BaseTestScene
-import unittest
 from sprocess.sentinel2 import Sentinel2Scene
 
 
 class _TestSentinel2(_BaseTestScene):
 
-    scene = Sentinel2Scene
-    sceneid = 'test'
+    scene_class = Sentinel2Scene
 
     @classmethod
     def setUpClass(cls):
@@ -24,5 +22,3 @@ class _TestSentinel2(_BaseTestScene):
         """ Save original files to GeoTiff """
         scene = self.scene.seed_from_directory(self.input_dir)
         scene.process('toa', outpath=self.testdir)
-
-

@@ -9,7 +9,7 @@ import gippy
 
 class _BaseTestScene(unittest.TestCase):
 
-    scene = Scene
+    scene_class = Scene
 
     sceneid = 'test'
 
@@ -19,12 +19,15 @@ class _BaseTestScene(unittest.TestCase):
     def setUpClass(cls):
         if not os.path.exists(cls.testdir):
             os.mkdir(cls.testdir)
+        gippy.Options.SetVerbose(3)
 
     @classmethod
     def tearDownClass(cls):
         """ Clean up after tests """
-        print 'remove %s' % cls.testdir
-        #shutil.rmtree(cls.testdir)
+        shutil.rmtree(cls.testdir)
+
+    def setUp(self):
+        self.scene = self.scene_class.seed_from_directory(self.testdir)
 
     def test_create_from_directory(self):
         """ Test creating a scene from directory of images """
@@ -32,11 +35,18 @@ class _BaseTestScene(unittest.TestCase):
         geoimg = scene.process('toa')
         self.assertTrue(geoimg.Basename(), self.sceneid)
 
+    def test_dc(self):
+        """ Test DC product (if exists) """
+        if 'dc' in self.scene._products:
+            geoimg = self.scene.process('dc')
+            img = geoimg.Read()
+            self.assertTrue(img.shape == (geoimg.NumBands(), 1, geoimg.XSize(), geoimg.YSize()))
+            # how else to test DC values ???
+
     # generalize this into loop through test all products
     def test_ndvi(self):
         """ Test calculating NDVI product """
-        scene = self.scene.seed_from_directory(self.testdir)
-        scene.process('ndvi', outfile=os.path.join(self.testdir, '%s_ndvi.tif' % self.sceneid))
+        self.scene.process('ndvi', outfile=os.path.join(self.testdir, '%s_ndvi.tif' % self.sceneid))
         # check with numpy against original band
         #geoimg1 = scene.products['']
 
