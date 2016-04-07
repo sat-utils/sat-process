@@ -1,75 +1,49 @@
-#!/usr/bin/env python
+from gippy import GeoImage
+from .base import BaseTest
 
-import os
-import shutil
-import unittest
-from sprocess import Scene
-import gippy
+from sprocess import errors
+from sprocess.scene import Scene
 
 
-class _BaseTestScene(unittest.TestCase):
+class TestScene(BaseTest):
 
-    scene_class = Scene
+    def test_scene_filenames_only(self):
+        """ Test creation of Scene object with only filenames """
+        images = Scene(self.files)
+        imgs = images.open()
+        self.assertTrue(isinstance(imgs, GeoImage))
+        self.assertEqual(imgs.NumBands(), len(self.files))
 
-    sceneid = 'test'
+    def test_scene_filenames_and_bands(self):
+        """ Test creation of Scene object with filenames and bands"""
 
-    testdir = os.path.join(os.path.dirname(__file__), 'images')
+        images = Scene(self.file_dict)
+        images.open()
+        self.assertTrue(images.is_open)
+        self.assertEqual(images.geoimg.NumBands(), len(self.file_dict))
 
-    @classmethod
-    def setUpClass(cls):
-        if not os.path.exists(cls.testdir):
-            os.mkdir(cls.testdir)
-        gippy.Options.SetVerbose(3)
+    def test_scene_wrong_input(self):
 
-    @classmethod
-    def tearDownClass(cls):
-        """ Clean up after tests """
-        shutil.rmtree(cls.testdir)
+        with self.assertRaises(Exception):
+            Scene('path/to/file')
 
-    def setUp(self):
-        self.scene = self.scene_class.seed_from_directory(self.testdir)
+        with self.assertRaises(Exception):
+            Scene({'path/to/file': 'red'})
 
-    def test_create_from_directory(self):
-        """ Test creating a scene from directory of images """
-        scene = self.scene.seed_from_directory(self.testdir)
-        geoimg = scene.process('toa')
-        self.assertTrue(geoimg.Basename(), self.sceneid)
+    def test_scene_bands(self):
+        scene = Scene(self.file_dict)
 
-    def test_dc(self):
-        """ Test DC product (if exists) """
-        if 'dc' in self.scene._products:
-            geoimg = self.scene.process('dc')
-            img = geoimg.Read()
-            self.assertTrue(img.shape == (geoimg.NumBands(), 1, geoimg.XSize(), geoimg.YSize()))
-            # how else to test DC values ???
+        # Get band names before opening the files
+        with self.assertRaises(errors.SceneIsNotOpen):
+            scene.bands
 
-    # generalize this into loop through test all products
-    def test_ndvi(self):
-        """ Test calculating NDVI product """
-        self.scene.process('ndvi', outfile=os.path.join(self.testdir, '%s_ndvi.tif' % self.sceneid))
-        # check with numpy against original band
-        #geoimg1 = scene.products['']
+        # Get bands names after opening the files
+        scene.open()
+        bands = scene.bands
+        self.assertTrue(isinstance(bands, tuple))
+        self.assertEqual(len(bands), 10)
 
-
-class _TestScene(_BaseTestScene):
-    """ Perform all _BaseTestScene tests with small generic images """
-
-    @classmethod
-    def setUpClass(cls):
-        """ Create some test images """
-        super(TestScene, cls).setUpClass()
-        fout = os.path.join(cls.testdir, '%s_dc.tif' % cls.sceneid)
-        if not os.path.exists(fout):
-            geoimg = gippy.GeoImage(fout, 100, 100, 4, gippy.DataType('Float64'))
-            # geoimg.SetBandNames(['blue', 'green', 'red', 'nir'])
-            geoimg.SetBandName('blue', 1)
-            geoimg.SetBandName('green', 2)
-            geoimg.SetBandName('red', 3)
-            geoimg.SetBandName('nir', 4)
-        else:
-            geoimg = gippy.GeoImage(fout)
-        geoimg['nir'] = geoimg['nir'] + 2
-        geoimg['red'] = geoimg['red'] + 1
-        # save with some values for nir and red
-        geoimg.Process()
-        geoimg = None
+    def test_scene_basename(self):
+        scene = Scene([self.files[0]])
+        scene.open()
+        self.assertEqual(scene.basename(), 'test_B1.tif')
