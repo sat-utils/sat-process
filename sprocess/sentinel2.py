@@ -1,12 +1,15 @@
-#!/usr/bin/env python
+from six import iteritems
 
-from scene import Scene
-from product import Product, NDVI
+from .scene import Scene
+from .product import NDVI, EVI
+from .errors import SatProcessError
 
 
-class TOA(Product):
-    description = 'Top of the Atmosphere Reflectance'
+# Landsat specific Products
+class Sentinel2(Scene, NDVI, EVI):
+    description = 'Landsat Scene'
 
+    # bandmap
     _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
@@ -18,26 +21,17 @@ class TOA(Product):
         'B12': 'swir2'
     }
 
-    @classmethod
-    def pattern(cls):
-        """ Regular expression for matching product files """
-        return r'(.*)_(B.*)\.jp2$'
+    def __init__(self, filenames):
 
-    def process(self, **kwargs):
-        """ Create TOA """
-        geoimg = super(TOA, self).process(**kwargs)
-        geoimg.SetNoData(0)
-        geoimg.SetGain(0.0001)
-        return geoimg
+        if not isinstance(filenames, dict):
+            raise SatProcessError('Both filename and band name must be provided for landsat scenes. ' +
+                                  'You can either use landsat band numbers or descriptive names e.g. red')
+        # replace landsat band numbers with bandmap names
+        for f, bands in iteritems(filenames):
+            for i, band in enumerate(bands):
+                if band.upper() in self._bandmap:
+                    bands[i] = self._bandmap[band.upper()]
 
+            filenames[f] = bands
 
-class Sentinel2Scene(Scene):
-    """ A tile of Sentinel data for same timestamp and spatial region
-        and possibly containing multiple bands """
-
-    _products = {
-        # original products
-        TOA.name(): TOA,
-        # dervied products
-        NDVI.name(): NDVI
-    }
+        super(Sentinel2, self).__init__(filenames)
