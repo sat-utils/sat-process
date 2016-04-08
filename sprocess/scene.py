@@ -52,6 +52,9 @@ class Scene(object):
         self.only_files = None
         self.file_bands = None
 
+        if not filenames:
+            raise SatProcessError('Filenames are missing')
+
         if isinstance(filenames, list):
             self.only_files = filenames
 
