@@ -1,6 +1,9 @@
 sat-process
 +++++++++++
 
+.. image:: https://travis-ci.org/sat-utils/sat-process.svg?branch=develop
+    :target: https://travis-ci.org/sat-utils/sat-process
+
 This is a Python library for processing toolkit for Open Raster Data. This is library can be used for creating data specific processing libraries and command line utilities.
 
 Process remote sensing images with this library using two main steps:
