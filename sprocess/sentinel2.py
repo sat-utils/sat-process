@@ -10,7 +10,7 @@ class Sentinel2(Scene, NDVI, EVI):
     description = 'Landsat Scene'
 
     # bandmap
-    _bandmap = {
+    bands_map = {
         'B01': 'coastal',
         'B02': 'blue',
         'B03': 'green',
@@ -29,8 +29,8 @@ class Sentinel2(Scene, NDVI, EVI):
         # replace landsat band numbers with bandmap names
         for f, bands in iteritems(filenames):
             for i, band in enumerate(bands):
-                if band.upper() in self._bandmap:
-                    bands[i] = self._bandmap[band.upper()]
+                if band.upper() in self.bands_map:
+                    bands[i] = self.bands_map[band.upper()]
 
             filenames[f] = bands
 
