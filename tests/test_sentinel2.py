@@ -1,24 +1,41 @@
-#!/usr/bin/env python
-
-from test_scene import _BaseTestScene
-from sprocess.sentinel2 import Sentinel2Scene
+from .base import BaseTest
+from sprocess.sentinel2 import Sentinel2
 
 
-class _TestSentinel2(_BaseTestScene):
+class TestProduct(BaseTest):
 
-    scene_class = Sentinel2Scene
+    def setUp(self):
+        super(TestProduct, self).setUp(path='samples/sentinel2', extension='jp2', scenes=Sentinel2.bands_map)
 
-    @classmethod
-    def setUpClass(cls):
-        """ Get test image if not present """
-        cls.input_dir = '/home/mhanson/data/sentinel/%s' % cls.sceneid
+    def test_product_name(self):
+        scene = Sentinel2({self.files[0]: ['red']})
+        scene.open()
+        self.assertEqual(scene.product_name('ndvi'), 'ndvi_B01.jp2')
 
-    @classmethod
-    def tearDownClass(cls):
-        """ Clean up after tests """
-        pass
+    def test_ndvi(self):
+        scene = Sentinel2(self.file_dict)
+        scene.open()
+        self.assertEquals(scene.band_numbers, 8)
 
-    def test_save_toa(self):
-        """ Save original files to GeoTiff """
-        scene = self.scene.seed_from_directory(self.input_dir)
-        scene.process('toa', outpath=self.testdir)
+        scene.open().ndvi()
+        self.assertEquals(scene.band_numbers, 9)
+        self.assertTrue('ndvi' in scene.bands)
+
+    def test_evi(self):
+        scene = Sentinel2(self.file_dict)
+        scene.open()
+        self.assertEquals(scene.band_numbers, 8)
+
+        scene.open().evi()
+        self.assertEquals(scene.band_numbers, 9)
+        self.assertTrue('evi' in scene.bands)
+
+    def test_process_chaining(self):
+        scene = Sentinel2(self.file_dict)
+        scene.open()
+        self.assertEquals(scene.band_numbers, 8)
+
+        scene.open().ndvi().evi()
+        self.assertEquals(scene.band_numbers, 10)
+        self.assertTrue('evi' in scene.bands)
+        self.assertTrue('ndvi' in scene.bands)
