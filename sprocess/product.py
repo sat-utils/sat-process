@@ -6,7 +6,7 @@ import os
 import errno
 import shutil
 from tempfile import mkdtemp
-from gippy.algorithms import Indices
+from gippy.algorithms import indices
 from .scene import scene_open_check
 
 
@@ -45,16 +45,16 @@ class BaseIndices(Product):
             outfile = os.path.join(tmp_folder + self.product_name(method))
 
         prods = {method: outfile}
-        ndvi_image = Indices(self.geoimg, prods)
+        ndvi_image = indices(self.geoimg, prods)
         try:
             shutil.rmtree(tmp_folder)
         except OSError as exc:
             if exc.errno != errno.ENOENT:
                 raise
 
-        name = ndvi_image.BandNames()
-        self.geoimg.AddBand(ndvi_image[name[0]])
-        self.geoimg.SetBandName(method, self.geoimg.NumBands())
+        name = ndvi_image.bandnames()
+        self.geoimg.add(ndvi_image[name[0]])
+        self.geoimg.set_bandname(method, self.geoimg.nbands())
         return self
 
 

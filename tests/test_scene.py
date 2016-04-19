@@ -12,7 +12,7 @@ class TestScene(BaseTest):
         images = Scene(self.files)
         imgs = images.open()
         self.assertTrue(isinstance(imgs, GeoImage))
-        self.assertEqual(imgs.NumBands(), len(self.files))
+        self.assertEqual(imgs.nbands(), len(self.files))
 
     def test_scene_filenames_and_bands(self):
         """ Test creation of Scene object with filenames and bands"""
@@ -20,7 +20,7 @@ class TestScene(BaseTest):
         images = Scene(self.file_dict)
         images.open()
         self.assertTrue(images.is_open)
-        self.assertEqual(images.geoimg.NumBands(), len(self.file_dict))
+        self.assertEqual(images.geoimg.nbands(), len(self.file_dict))
 
     def test_scene_wrong_input(self):
 
