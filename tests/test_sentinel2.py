@@ -5,7 +5,7 @@ from sprocess.sentinel2 import Sentinel2
 class TestProduct(BaseTest):
 
     def setUp(self):
-        super(TestProduct, self).setUp(path='samples/sentinel2', extension='jp2', scenes=Sentinel2.bands_map)
+        super(TestProduct, self).setUp(path='samples/samples/sentinel2', extension='jp2', scenes=Sentinel2.bands_map)
 
     def test_product_name(self):
         scene = Sentinel2({self.files[0]: ['red']})

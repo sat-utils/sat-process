@@ -6,7 +6,7 @@ import unittest
 
 class BaseTest(unittest.TestCase):
 
-    def setUp(self, path='samples/landsat8', extension='tif', scenes=None):
+    def setUp(self, path='samples/samples/landsat8', extension='tif', scenes=None):
 
         self.test_dir = os.path.join(os.path.dirname(__file__), path)
         self.files = glob.glob(os.path.join(self.test_dir, '*.%s' % extension))
