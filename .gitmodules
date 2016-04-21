@@ -1,0 +1,3 @@
+[submodule "tests/samples"]
+	path = tests/samples
+	url = https://github.com/sat-utils/sat-testdata.git

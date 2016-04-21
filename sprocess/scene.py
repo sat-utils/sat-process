@@ -70,17 +70,17 @@ class Scene(object):
 
     @scene_open_check
     def basename(self):
-        return os.path.basename(self.geoimg.Filename())
+        return os.path.basename(self.geoimg.filename())
 
     @property
     @scene_open_check
     def bands(self):
-        return self.geoimg.BandNames()
+        return self.geoimg.bandnames()
 
     @property
     @scene_open_check
     def band_numbers(self):
-        return self.geoimg.NumBands()
+        return self.geoimg.nbands()
 
     @property
     def is_open(self):
@@ -108,7 +108,7 @@ class Scene(object):
 
             self.geoimg = gippy.GeoImage(filenames)
             for i, band in enumerate(bands):
-                self.geoimg.SetBandName(band, i + 1)
+                self.geoimg.set_bandname(band, i + 1)
 
             return self
         else:
