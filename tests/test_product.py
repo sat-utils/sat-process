@@ -1,4 +1,5 @@
-from .base import BaseTest
+import unittest
+from stestdata import TestData
 from sprocess.scene import Scene
 from sprocess.product import NDVI, EVI
 
@@ -9,15 +10,19 @@ class SceneProductForTest(Scene, NDVI, EVI):
     pass
 
 
-class TestProduct(BaseTest):
+class TestProduct(unittest.TestCase):
+
+    def setUp(self):
+        self.t = TestData('landsat8')
 
     def test_product_name(self):
-        scene = SceneProductForTest([self.files[0]])
+        band = self.t.examples[self.t.names[0]]['B1']['path']
+        scene = SceneProductForTest([band])
         scene.open()
         self.assertEqual(scene.product_name('ndvi'), 'ndvi_test_B1.tif')
 
     def test_ndvi(self):
-        scene = SceneProductForTest(self.file_dict)
+        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 10)
 
@@ -26,7 +31,7 @@ class TestProduct(BaseTest):
         self.assertTrue('ndvi' in scene.bands)
 
     def test_evi(self):
-        scene = SceneProductForTest(self.file_dict)
+        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 10)
 
@@ -35,7 +40,7 @@ class TestProduct(BaseTest):
         self.assertTrue('evi' in scene.bands)
 
     def test_process_chaining(self):
-        scene = SceneProductForTest(self.file_dict)
+        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 10)
 

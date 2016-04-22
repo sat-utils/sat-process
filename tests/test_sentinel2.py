@@ -1,19 +1,20 @@
-from .base import BaseTest
+import unittest
+from stestdata import TestData
 from sprocess.sentinel2 import Sentinel2
 
 
-class TestProduct(BaseTest):
+class TestProduct(unittest.TestCase):
 
     def setUp(self):
-        super(TestProduct, self).setUp(path='samples/samples/sentinel2', extension='jp2', scenes=Sentinel2.bands_map)
+        self.t = TestData('sentinel2')
 
     def test_product_name(self):
-        scene = Sentinel2({self.files[0]: ['red']})
+        scene = Sentinel2({self.t.files[self.t.names[0]][0]: ['red']})
         scene.open()
         self.assertEqual(scene.product_name('ndvi'), 'ndvi_B01.jp2')
 
     def test_ndvi(self):
-        scene = Sentinel2(self.file_dict)
+        scene = Sentinel2(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 8)
 
@@ -22,7 +23,7 @@ class TestProduct(BaseTest):
         self.assertTrue('ndvi' in scene.bands)
 
     def test_evi(self):
-        scene = Sentinel2(self.file_dict)
+        scene = Sentinel2(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 8)
 
@@ -31,7 +32,7 @@ class TestProduct(BaseTest):
         self.assertTrue('evi' in scene.bands)
 
     def test_process_chaining(self):
-        scene = Sentinel2(self.file_dict)
+        scene = Sentinel2(self.t.files_bands[self.t.names[0]])
         scene.open()
         self.assertEquals(scene.band_numbers, 8)
 
