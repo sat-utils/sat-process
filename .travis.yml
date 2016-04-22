@@ -19,7 +19,6 @@ install:
 - pip install numpy==1.9.1
 - pip install git+git://github.com/gipit/gippy.git@develop
 - pip install -e .
-- git submodule init
 
 script:
 - python setup.py nosetests
