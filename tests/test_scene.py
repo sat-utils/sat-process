@@ -39,5 +39,13 @@ class TestScene(unittest.TestCase):
         self.assertEqual(len(bands), 10)
 
     def test_scene_basename(self):
-        scene = Scene([self.t.files[self.t.names[0]][0]])
+        scene = Scene([self.filenames[0]])
         self.assertEqual(scene.basename(), 'test_B1')
+
+    def test_select(self):
+        scene = Scene(self.filenames)
+        scene.set_bandnames(self.bandnames)
+        self.assertEqual(scene.band_numbers, 10)
+
+        scene.select(['red', 'nir'])
+        self.assertEqual(scene.band_numbers, 2)
