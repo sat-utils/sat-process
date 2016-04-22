@@ -21,3 +21,7 @@ class Scene(gippy.GeoImage):
             return search.group(0).replace('.', '')
         else:
             return None
+
+    def select(self, *args, **kwargs):
+        img = super(Scene, self).select(*args, **kwargs)
+        return Scene(img)

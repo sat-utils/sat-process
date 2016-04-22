@@ -47,5 +47,6 @@ class TestScene(unittest.TestCase):
         scene.set_bandnames(self.bandnames)
         self.assertEqual(scene.band_numbers, 10)
 
-        scene.select(['red', 'nir'])
-        self.assertEqual(scene.band_numbers, 2)
+        scene2 = scene.select(['red', 'nir'])
+        self.assertEqual(scene.band_numbers, 10)
+        self.assertEqual(scene2.band_numbers, 2)
