@@ -14,37 +14,38 @@ class TestProduct(unittest.TestCase):
 
     def setUp(self):
         self.t = TestData('landsat8')
+        self.filenames = self.t.files[self.t.names[0]]
+        self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_product_name(self):
         band = self.t.examples[self.t.names[0]]['B1']['path']
         scene = SceneProductForTest([band])
-        scene.open()
-        self.assertEqual(scene.product_name('ndvi'), 'ndvi_test_B1.tif')
+        self.assertEqual(scene.product_name('ndvi'), 'ndvi_test_B1')
 
     def test_ndvi(self):
-        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
-        scene.open()
-        self.assertEquals(scene.band_numbers, 10)
+        scene = SceneProductForTest(self.filenames)
+        scene.set_bandnames(self.bandnames)
+        self.assertEquals(scene.nbands(), 10)
 
-        scene.open().ndvi()
-        self.assertEquals(scene.band_numbers, 11)
+        scene.ndvi()
+        self.assertEquals(scene.nbands(), 11)
         self.assertTrue('ndvi' in scene.bands)
 
     def test_evi(self):
-        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
-        scene.open()
+        scene = SceneProductForTest(self.filenames)
+        scene.set_bandnames(self.bandnames)
         self.assertEquals(scene.band_numbers, 10)
 
-        scene.open().evi()
+        scene.evi()
         self.assertEquals(scene.band_numbers, 11)
         self.assertTrue('evi' in scene.bands)
 
     def test_process_chaining(self):
-        scene = SceneProductForTest(self.t.files_bands[self.t.names[0]])
-        scene.open()
+        scene = SceneProductForTest(self.filenames)
+        scene.set_bandnames(self.bandnames)
         self.assertEquals(scene.band_numbers, 10)
 
-        scene.open().ndvi().evi()
+        scene.ndvi().evi()
         self.assertEquals(scene.band_numbers, 12)
         self.assertTrue('evi' in scene.bands)
         self.assertTrue('ndvi' in scene.bands)

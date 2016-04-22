@@ -7,7 +7,6 @@ import errno
 import shutil
 from tempfile import mkdtemp
 from gippy.algorithms import indices
-from .scene import scene_open_check
 
 
 class Product(object):
@@ -31,7 +30,6 @@ class BaseIndices(Product):
     description = 'Base class for Indices'
     dependencies = []
 
-    @scene_open_check
     def process(self, method, path=None):
         # if the image is not open, open it first
 
@@ -45,7 +43,7 @@ class BaseIndices(Product):
             outfile = os.path.join(tmp_folder + self.product_name(method))
 
         prods = {method: outfile}
-        ndvi_image = indices(self.geoimg, prods)
+        ndvi_image = indices(self, prods)
         try:
             shutil.rmtree(tmp_folder)
         except OSError as exc:
@@ -53,8 +51,8 @@ class BaseIndices(Product):
                 raise
 
         name = ndvi_image.bandnames()
-        self.geoimg.add(ndvi_image[name[0]])
-        self.geoimg.set_bandname(method, self.geoimg.nbands())
+        self.add(ndvi_image[name[0]])
+        self.set_bandname(method, self.nbands())
         return self
 
 
