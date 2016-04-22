@@ -1,15 +1,16 @@
-#!/usr/bin/env python
+import unittest
+from stestdata import TestData
+from sprocess.landsat8 import Landsat8
 
-# from test_scene import _BaseTestScene
-# from sprocess.landsat8 import Landsat8Scene
 
+class TestProduct(unittest.TestCase):
 
-# class _TestLandsat8(_BaseTestScene):
+    def setUp(self):
+        self.t = TestData('landsat8')
+        self.filenames = self.t.files[self.t.names[0]]
+        self.bandnames = self.t.bands[self.t.names[0]]
 
-#     scene_class = Landsat8Scene
-#     sceneid = 'LC80090612015251LGN00'
-
-#     @classmethod
-#     def setUpClass(cls):
-#         """ Get test image if not present """
-#         cls.input_dir = '/home/mhanson/landsat/downloads/%s' % cls.sceneid
+    def test_product_name(self):
+        scene = Landsat8(self.filenames)
+        self.assertEqual(len(scene.bandnames()), len(scene.filenames()))
+        self.assertEqual(scene.bandnames()[0], 'coastal')

@@ -1,11 +1,7 @@
-from six import iteritems
-
 from .scene import Scene
 from .product import NDVI, EVI
-from .errors import SatProcessError
 
 
-# Landsat specific Products
 class Landsat8(Scene, NDVI, EVI):
     description = 'Landsat Scene'
 
@@ -23,17 +19,14 @@ class Landsat8(Scene, NDVI, EVI):
         'BQA': 'quality'
     }
 
-    def __init__(self, filenames):
+    def __init__(self, *args, **kwargs):
+        super(Landsat8, self).__init__(*args, **kwargs)
 
-        if not isinstance(filenames, dict):
-            raise SatProcessError('Both filename and band name must be provided for landsat scenes. ' +
-                                  'You can either use landsat band numbers or descriptive names e.g. red')
-        # replace landsat band numbers with bandmap names
-        for f, bands in iteritems(filenames):
-            for i, band in enumerate(bands):
-                if band.upper() in self._bandmap:
-                    bands[i] = self._bandmap[band.upper()]
-
-            filenames[f] = bands
-
-        super(Landsat8, self).__init__(filenames)
+        filenames = self.filenames()
+        for i, name in enumerate(filenames):
+            band = self.get_bandname_from_file(name)
+            if band:
+                if band in self._bandmap.keys():
+                    self.set_bandname(self._bandmap[band], i + 1)
+                else:
+                    self.set_bandname(band, i + 1)
