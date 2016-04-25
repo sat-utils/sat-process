@@ -7,6 +7,7 @@ import errno
 import shutil
 from tempfile import mkdtemp
 from gippy.algorithms import indices
+from errors import SatProcessError
 
 
 class Product(object):
@@ -61,6 +62,13 @@ class NDVI(BaseIndices):
     ndvi_enabled = False
 
     def ndvi(self, path=None):
+        # Make sure band red and nir are present
+        if 'nir' not in self.bands:
+            raise SatProcessError('nir band is not provided')
+
+        if 'red' not in self.bands:
+            raise SatProcessError('red band is not provided')
+
         return self.process('ndvi', path)
 
 
