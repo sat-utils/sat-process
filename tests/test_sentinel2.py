@@ -1,6 +1,7 @@
 import unittest
 from stestdata import TestData
 from sprocess.sentinel2 import Sentinel2
+from sprocess.errors import SatProcessError
 
 
 class TestProduct(unittest.TestCase):
@@ -17,16 +18,32 @@ class TestProduct(unittest.TestCase):
 
     def test_ndvi(self):
         scene = Sentinel2(self.filenames)
-        scene.set_bandnames(self.bandnames)
         self.assertEquals(scene.band_numbers, 8)
 
         scene.ndvi()
         self.assertEquals(scene.band_numbers, 9)
         self.assertTrue('ndvi' in scene.bands)
 
+    def test_ndvi_incorrect_bands(self):
+        scene = Sentinel2(self.filenames)
+        self.assertEquals(scene.band_numbers, 8)
+
+        scene2 = scene.select(['red', 'blue', 'green'])
+
+        try:
+            scene2.ndvi()
+        except SatProcessError as e:
+            self.assertEquals(e.message, 'nir band is not provided')
+
+        scene2 = scene.select(['nir', 'blue', 'green'])
+
+        try:
+            scene2.ndvi()
+        except SatProcessError as e:
+            self.assertEquals(e.message, 'red band is not provided')
+
     def test_evi(self):
         scene = Sentinel2(self.filenames)
-        scene.set_bandnames(self.bandnames)
         self.assertEquals(scene.band_numbers, 8)
 
         scene.evi()
@@ -35,7 +52,6 @@ class TestProduct(unittest.TestCase):
 
     def test_process_chaining(self):
         scene = Sentinel2(self.filenames)
-        scene.set_bandnames(self.bandnames)
         self.assertEquals(scene.band_numbers, 8)
 
         scene.ndvi().evi()
