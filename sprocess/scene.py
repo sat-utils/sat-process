@@ -23,5 +23,6 @@ class Scene(gippy.GeoImage):
             return None
 
     def select(self, *args, **kwargs):
+        """ Return instance of Scene instead of GeoImage """
         img = super(Scene, self).select(*args, **kwargs)
         return Scene(img)

@@ -6,7 +6,7 @@ class Sentinel2(Scene, NDVI, EVI):
     description = 'Landsat Scene'
 
     # bandmap
-    bands_map = {
+    _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
         'B03': 'green',
@@ -16,3 +16,15 @@ class Sentinel2(Scene, NDVI, EVI):
         'B11': 'swir1',
         'B12': 'swir2'
     }
+
+    def __init__(self, *args, **kwargs):
+        super(Sentinel2, self).__init__(*args, **kwargs)
+
+        filenames = self.filenames()
+        for i, name in enumerate(filenames):
+            band = self.get_bandname_from_file(name)
+            if band:
+                if band in self._bandmap.keys():
+                    self.set_bandname(self._bandmap[band], i + 1)
+                else:
+                    self.set_bandname(band, i + 1)

@@ -11,8 +11,9 @@ class TestProduct(unittest.TestCase):
         self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_product_name(self):
-        scene = Sentinel2(self.filenames[0])
-        self.assertEqual(scene.product_name('ndvi'), 'ndvi_B01')
+        scene = Sentinel2(self.filenames)
+        self.assertEqual(len(scene.bandnames()), len(scene.filenames()))
+        self.assertEqual(scene.bandnames()[0], 'coastal')
 
     def test_ndvi(self):
         scene = Sentinel2(self.filenames)
