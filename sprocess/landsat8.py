@@ -1,8 +1,8 @@
 from .scene import Scene
-from .product import NDVI, EVI
+from .product import NDVI
 
 
-class Landsat8(Scene, NDVI, EVI):
+class Landsat8(Scene, NDVI):
     description = 'Landsat Scene'
 
     # bandmap
