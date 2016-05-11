@@ -2,10 +2,6 @@
     Product classes which represent files on disk and processing required
 """
 
-import os
-import errno
-import shutil
-from tempfile import mkdtemp
 from gippy.algorithms import indices
 from errors import SatProcessError
 
@@ -32,29 +28,35 @@ class BaseIndices(Product):
     dependencies = []
 
     def process(self, method, path=None):
-        # if the image is not open, open it first
+        args = [self, [method]]
 
-        tmp_folder = mkdtemp()
         if path:
-            if os.path.isdir(path):
-                outfile = os.path.join(path + self.product_name(method))
-            else:
-                outfile = path
-        else:
-            outfile = os.path.join(tmp_folder + self.product_name(method))
+            args.append(path)
 
-        prods = {method: outfile}
-        ndvi_image = indices(self, prods)
-        try:
-            shutil.rmtree(tmp_folder)
-        except OSError as exc:
-            if exc.errno != errno.ENOENT:
-                raise
+        new_image = indices(*args)
+        return self.__class__(new_image)
 
-        name = ndvi_image.bandnames()
-        self.add(ndvi_image[name[0]])
-        self.set_bandname(method, self.nbands())
-        return self
+
+class TrueColor(BaseIndices):
+
+    def true_color(self, path=None, dtype='byte'):
+        required_bands = ['red', 'green', 'blue']
+        args = [path]
+        kwargs = {}
+
+        # make sure red, green, blue is present
+        self.has_bands(required_bands)
+        rgb = self.select(required_bands)
+
+        if dtype:
+            kwargs['dtype'] = dtype
+
+        if dtype in ['uint8', 'byte']:
+            rgb = rgb.autoscale(1, 255)
+
+        if path:
+            rgb.save(*args, **kwargs)
+        return rgb
 
 
 class NDVI(BaseIndices):
