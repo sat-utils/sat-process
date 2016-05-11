@@ -20,9 +20,9 @@ class TestProduct(unittest.TestCase):
         scene = Sentinel2(self.filenames)
         self.assertEquals(scene.band_numbers, 8)
 
-        scene.ndvi()
-        self.assertEquals(scene.band_numbers, 9)
-        self.assertTrue('ndvi' in scene.bands)
+        ndvi = scene.ndvi()
+        self.assertEquals(ndvi.band_numbers, 1)
+        self.assertTrue('ndvi' in ndvi.bands)
 
     def test_ndvi_incorrect_bands(self):
         scene = Sentinel2(self.filenames)
@@ -46,15 +46,6 @@ class TestProduct(unittest.TestCase):
         scene = Sentinel2(self.filenames)
         self.assertEquals(scene.band_numbers, 8)
 
-        scene.evi()
-        self.assertEquals(scene.band_numbers, 9)
-        self.assertTrue('evi' in scene.bands)
-
-    def test_process_chaining(self):
-        scene = Sentinel2(self.filenames)
-        self.assertEquals(scene.band_numbers, 8)
-
-        scene.ndvi().evi()
-        self.assertEquals(scene.band_numbers, 10)
-        self.assertTrue('evi' in scene.bands)
-        self.assertTrue('ndvi' in scene.bands)
+        evi = scene.evi()
+        self.assertEquals(evi.band_numbers, 1)
+        self.assertTrue('evi' in evi.bands)

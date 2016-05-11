@@ -20,9 +20,9 @@ class TestProduct(unittest.TestCase):
         scene = Landsat8(self.filenames)
         self.assertEquals(scene.band_numbers, 10)
 
-        scene.ndvi()
-        self.assertEquals(scene.band_numbers, 11)
-        self.assertTrue('ndvi' in scene.bands)
+        ndvi = scene.ndvi()
+        self.assertEquals(ndvi.band_numbers, 1)
+        self.assertTrue('ndvi' in ndvi.bands)
 
     def test_ndvi_incorrect_bands(self):
         scene = Landsat8(self.filenames)
