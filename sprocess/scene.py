@@ -1,5 +1,6 @@
 import re
 import gippy
+from errors import SatProcessError
 
 
 class Scene(gippy.GeoImage):
@@ -26,3 +27,13 @@ class Scene(gippy.GeoImage):
         """ Return instance of Scene instead of GeoImage """
         img = super(Scene, self).select(*args, **kwargs)
         return self.__class__(img)
+
+    def autoscale(self, *args, **kwargs):
+        """ Return instance of Scene instead of GeoImage """
+        img = super(Scene, self).autoscale(*args, **kwargs)
+        return self.__class__(img)
+
+    def has_bands(self, bands):
+        for b in bands:
+            if b not in self.bands:
+                raise SatProcessError('Band %s is required' % b)
