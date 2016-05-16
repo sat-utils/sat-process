@@ -2,12 +2,8 @@
     Product classes which represent files on disk and processing required
 """
 
-import os
-import errno
-import shutil
-from tempfile import mkdtemp
 from gippy.algorithms import indices
-from .scene import scene_open_check
+from errors import SatProcessError
 
 
 class Product(object):
@@ -31,31 +27,36 @@ class BaseIndices(Product):
     description = 'Base class for Indices'
     dependencies = []
 
-    @scene_open_check
     def process(self, method, path=None):
-        # if the image is not open, open it first
+        args = [self, [method]]
 
-        tmp_folder = mkdtemp()
         if path:
-            if os.path.isdir(path):
-                outfile = os.path.join(path + self.product_name(method))
-            else:
-                outfile = path
-        else:
-            outfile = os.path.join(tmp_folder + self.product_name(method))
+            args.append(path)
 
-        prods = {method: outfile}
-        ndvi_image = indices(self.geoimg, prods)
-        try:
-            shutil.rmtree(tmp_folder)
-        except OSError as exc:
-            if exc.errno != errno.ENOENT:
-                raise
+        new_image = indices(*args)
+        return self.__class__(new_image)
 
-        name = ndvi_image.bandnames()
-        self.geoimg.add(ndvi_image[name[0]])
-        self.geoimg.set_bandname(method, self.geoimg.nbands())
-        return self
+
+class TrueColor(BaseIndices):
+
+    def true_color(self, path=None, dtype='byte'):
+        required_bands = ['red', 'green', 'blue']
+        args = [path]
+        kwargs = {}
+
+        # make sure red, green, blue is present
+        self.has_bands(required_bands)
+        rgb = self.select(required_bands)
+
+        if dtype:
+            kwargs['dtype'] = dtype
+
+        if dtype in ['uint8', 'byte']:
+            rgb = rgb.autoscale(1, 255)
+
+        if path:
+            rgb.save(*args, **kwargs)
+        return rgb
 
 
 class NDVI(BaseIndices):
@@ -63,6 +64,13 @@ class NDVI(BaseIndices):
     ndvi_enabled = False
 
     def ndvi(self, path=None):
+        # Make sure band red and nir are present
+        if 'nir' not in self.bands:
+            raise SatProcessError('nir band is not provided')
+
+        if 'red' not in self.bands:
+            raise SatProcessError('red band is not provided')
+
         return self.process('ndvi', path)
 
 

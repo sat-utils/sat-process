@@ -1,16 +1,12 @@
-from six import iteritems
-
 from .scene import Scene
-from .product import NDVI, EVI
-from .errors import SatProcessError
+from .product import NDVI, EVI, TrueColor
 
 
-# Landsat specific Products
-class Sentinel2(Scene, NDVI, EVI):
+class Sentinel2(Scene, NDVI, EVI, TrueColor):
     description = 'Landsat Scene'
 
     # bandmap
-    bands_map = {
+    _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
         'B03': 'green',
@@ -21,17 +17,14 @@ class Sentinel2(Scene, NDVI, EVI):
         'B12': 'swir2'
     }
 
-    def __init__(self, filenames):
+    def __init__(self, *args, **kwargs):
+        super(Sentinel2, self).__init__(*args, **kwargs)
 
-        if not isinstance(filenames, dict):
-            raise SatProcessError('Both filename and band name must be provided for landsat scenes. ' +
-                                  'You can either use landsat band numbers or descriptive names e.g. red')
-        # replace landsat band numbers with bandmap names
-        for f, bands in iteritems(filenames):
-            for i, band in enumerate(bands):
-                if band.upper() in self.bands_map:
-                    bands[i] = self.bands_map[band.upper()]
-
-            filenames[f] = bands
-
-        super(Sentinel2, self).__init__(filenames)
+        filenames = self.filenames()
+        for i, name in enumerate(filenames):
+            band = self.get_bandname_from_file(name)
+            if band:
+                if band in self._bandmap.keys():
+                    self.set_bandname(self._bandmap[band], i + 1)
+                else:
+                    self.set_bandname(band, i + 1)

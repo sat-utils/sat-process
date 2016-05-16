@@ -1,26 +1,27 @@
+import unittest
 from gippy import GeoImage
-from .base import BaseTest
-
-from sprocess import errors
+from stestdata import TestData
 from sprocess.scene import Scene
 
 
-class TestScene(BaseTest):
+class TestScene(unittest.TestCase):
+
+    def setUp(self):
+        self.t = TestData('landsat8')
+        self.filenames = self.t.files[self.t.names[0]]
+        self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_scene_filenames_only(self):
         """ Test creation of Scene object with only filenames """
-        images = Scene(self.files)
-        imgs = images.open()
-        self.assertTrue(isinstance(imgs, GeoImage))
-        self.assertEqual(imgs.nbands(), len(self.files))
+        images = Scene(self.filenames)
+        self.assertTrue(isinstance(images, GeoImage))
+        self.assertEqual(images.nbands(), len(self.t.files[self.t.names[0]]))
 
     def test_scene_filenames_and_bands(self):
         """ Test creation of Scene object with filenames and bands"""
 
-        images = Scene(self.file_dict)
-        images.open()
-        self.assertTrue(images.is_open)
-        self.assertEqual(images.geoimg.nbands(), len(self.file_dict))
+        images = Scene(self.filenames)
+        self.assertEqual(images.nbands(), len(self.filenames))
 
     def test_scene_wrong_input(self):
 
@@ -31,19 +32,21 @@ class TestScene(BaseTest):
             Scene({'path/to/file': 'red'})
 
     def test_scene_bands(self):
-        scene = Scene(self.file_dict)
-
-        # Get band names before opening the files
-        with self.assertRaises(errors.SceneIsNotOpen):
-            scene.bands
-
+        scene = Scene(self.filenames)
         # Get bands names after opening the files
-        scene.open()
         bands = scene.bands
         self.assertTrue(isinstance(bands, tuple))
         self.assertEqual(len(bands), 10)
 
     def test_scene_basename(self):
-        scene = Scene([self.files[0]])
-        scene.open()
-        self.assertEqual(scene.basename(), 'test_B1.tif')
+        scene = Scene([self.filenames[0]])
+        self.assertEqual(scene.basename(), 'test_B1')
+
+    def test_select(self):
+        scene = Scene(self.filenames)
+        scene.set_bandnames(self.bandnames)
+        self.assertEqual(scene.band_numbers, 10)
+
+        scene2 = scene.select(['red', 'nir'])
+        self.assertEqual(scene.band_numbers, 10)
+        self.assertEqual(scene2.band_numbers, 2)
