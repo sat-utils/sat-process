@@ -2,7 +2,9 @@
     Product classes which represent files on disk and processing required
 """
 
+import numpy as np
 from gippy.algorithms import indices
+from utils import rescale_intensity
 from errors import SatProcessError
 
 
@@ -37,9 +39,39 @@ class BaseIndices(Product):
         return self.__class__(new_image)
 
 
+class ColorCorrection(BaseIndices):
+
+    def color_correction(self, snow_cloud_coverage=0):
+
+        print('color correcting')
+        print(self)
+        if self.band_numbers > 3:
+            raise SatProcessError('Color Correction can only be applied on three bands')
+
+        i = 0
+        for band in self:
+            print(i)
+            band_np = band.read()
+            p_low, cloud_cut_low = np.percentile(band_np[np.logical_and(band_np > 0, band_np < 65535)],
+                                                 (0, (snow_cloud_coverage * 3 / 4)))
+            temp = np.zeros(np.shape(band_np), dtype=np.uint16)
+            cloud_divide = 65000 - snow_cloud_coverage * 100
+            mask = np.logical_and(band_np < cloud_cut_low, band_np > 0)
+            temp[mask] = rescale_intensity(band_np[mask],
+                                           in_range=(p_low, cloud_cut_low),
+                                           out_range=(256, cloud_divide))
+            temp[band_np >= cloud_cut_low] = rescale_intensity(band_np[band_np >= cloud_cut_low],
+                                                               out_range=(cloud_divide, 65535))
+            self[i].write(temp)
+            i += 1
+
+        return self
+
+
 class TrueColor(BaseIndices):
 
     def true_color(self, path=None, dtype='byte'):
+        print(self)
         required_bands = ['red', 'green', 'blue']
         args = [path]
         kwargs = {}
@@ -52,7 +84,7 @@ class TrueColor(BaseIndices):
             kwargs['dtype'] = dtype
 
         if dtype in ['uint8', 'byte']:
-            rgb = rgb.autoscale(1, 255)
+            self = rgb.autoscale(1, 255)
 
         if path:
             rgb.save(*args, **kwargs)

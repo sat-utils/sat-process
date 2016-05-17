@@ -1,8 +1,8 @@
 from .scene import Scene
-from .product import NDVI, TrueColor
+from .product import NDVI, TrueColor, ColorCorrection
 
 
-class Landsat8(Scene, NDVI, TrueColor):
+class Landsat8(Scene, NDVI, TrueColor, ColorCorrection):
     description = 'Landsat Scene'
 
     # bandmap
