@@ -44,16 +44,14 @@ class ColorCorrection(BaseIndices):
     def color_correction(self, snow_cloud_coverage=0):
 
         print('color correcting')
-        print(self)
         if self.band_numbers > 3:
             raise SatProcessError('Color Correction can only be applied on three bands')
 
         i = 0
         for band in self:
-            print(i)
             band_np = band.read()
             p_low, cloud_cut_low = np.percentile(band_np[np.logical_and(band_np > 0, band_np < 65535)],
-                                                 (0, (snow_cloud_coverage * 3 / 4)))
+                                                 (0, 100 - (snow_cloud_coverage * 3 / 4)))
             temp = np.zeros(np.shape(band_np), dtype=np.uint16)
             cloud_divide = 65000 - snow_cloud_coverage * 100
             mask = np.logical_and(band_np < cloud_cut_low, band_np > 0)
@@ -71,7 +69,6 @@ class ColorCorrection(BaseIndices):
 class TrueColor(BaseIndices):
 
     def true_color(self, path=None, dtype='byte'):
-        print(self)
         required_bands = ['red', 'green', 'blue']
         args = [path]
         kwargs = {}
@@ -83,8 +80,11 @@ class TrueColor(BaseIndices):
         if dtype:
             kwargs['dtype'] = dtype
 
-        if dtype in ['uint8', 'byte']:
-            self = rgb.autoscale(1, 255)
+        # if dtype in ['uint8', 'byte']:
+            # self = rgb.autoscale(1, 255)
+
+        for r in rgb:
+            print(r.height)
 
         if path:
             rgb.save(*args, **kwargs)
