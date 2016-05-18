@@ -1,5 +1,4 @@
 import unittest
-from gippy import GeoImage
 from stestdata import TestData
 from sprocess.scene import Scene
 
@@ -14,12 +13,11 @@ class TestScene(unittest.TestCase):
     def test_scene_filenames_only(self):
         """ Test creation of Scene object with only filenames """
         images = Scene(self.filenames)
-        self.assertTrue(isinstance(images, GeoImage))
+        self.assertTrue(isinstance(images, Scene))
         self.assertEqual(images.nbands(), len(self.t.files[self.t.names[0]]))
 
     def test_scene_filenames_and_bands(self):
         """ Test creation of Scene object with filenames and bands"""
-
         images = Scene(self.filenames)
         self.assertEqual(images.nbands(), len(self.filenames))
 
@@ -35,12 +33,8 @@ class TestScene(unittest.TestCase):
         scene = Scene(self.filenames)
         # Get bands names after opening the files
         bands = scene.bands
-        self.assertTrue(isinstance(bands, tuple))
+        self.assertTrue(isinstance(bands, list))
         self.assertEqual(len(bands), 10)
-
-    def test_scene_basename(self):
-        scene = Scene([self.filenames[0]])
-        self.assertEqual(scene.basename(), 'test_B1')
 
     def test_select(self):
         scene = Scene(self.filenames)
