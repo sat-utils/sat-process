@@ -3,7 +3,9 @@ import re
 from copy import copy
 
 import rasterio
-# import numpy as np
+import numpy as np
+from rasterio import crs
+from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 from errors import SatProcessError
 
 
@@ -15,25 +17,77 @@ class Raster(object):
         self.index = index
         self.bandname = bandname
         self.np = None
+        self.crs = raster.crs
+        self.affine = raster.affine
+        self.width = raster.width
+        self.height = raster.height
+
+        self.reprojected = False
 
     def __getattr__(self, name):
         return getattr(self.raster, name)
 
-    def read(self):
-        if self.np is None:
-            self.np = self.raster.read(self.index)
-        return self.np
-
-    def write(self, arr):
-        self.np = arr
+    @property
+    def basename(self):
+        return os.path.splitext(os.path.basename(self.filename))[0]
 
     @property
     def filename(self):
         return self.raster.name
 
     @property
-    def basename(self):
-        return os.path.splitext(os.path.basename(self.filename))[0]
+    def profile(self):
+        _profile = self.raster.profile
+
+        _profile.update(
+            height=self.height,
+            width=self.width,
+            crs=self.crs
+        )
+
+        if self.reprojected:
+            _profile['transform'] = self.affine
+
+        return _profile
+
+    def read(self):
+        if self.np is None:
+            self.np = self.raster.read(self.index)
+        return self.np
+
+    def reproject(self, dst_crs):
+        # if the image is geotiff, use rasterio's helper
+
+        dst_crs = crs.from_string(dst_crs)
+
+        affine, width, height = calculate_default_transform(
+            self.crs, dst_crs, self.width, self.height, *self.bounds
+        )
+
+        dst = np.zeros((height, width), getattr(np, self.meta['dtype']))
+
+        reproject(
+            source=self.read(),
+            destination=dst,
+            src_transform=self.affine,
+            src_crs=self.crs,
+            dst_transform=affine,
+            dst_crs=dst_crs,
+            resampling=RESAMPLING.nearest,
+            num_threads=4
+        )
+
+        self.np = dst
+
+        # record new dimensions
+        self.crs = dst_crs
+        self.height = height
+        self.width = width
+        self.affine = affine
+        self.reprojected = True
+
+    def write(self, arr):
+        self.np = arr
 
 
 class Scene(object):
@@ -102,8 +156,6 @@ class Scene(object):
             except IndexError:
                 raise SatProcessError('The band number doesn\'t exist')
 
-        print(self.bands)
-
     def filenames(self):
         return [r.filename for r in self.rasters]
 
@@ -132,14 +184,25 @@ class Scene(object):
         else:
             return None
 
+    def has_bands(self, bands):
+        for b in bands:
+            if b not in self.bands:
+                raise SatProcessError('Band %s is required' % b)
+
+    def reproject(self, dst_crs):
+        for r in self.rasters:
+            r.reproject(dst_crs)
+
     def save(self, path, dtype=None):
         """ Saves the first three rasters to the same file """
 
-        rasterio_options = self.rasters[0].profile
+        # get image data from the first raster
+        raster = self.rasters[0]
+
+        rasterio_options = raster.profile
         rasterio_options.update(
             count=3,
             photometric='RGB',
-            nodata=0,
         )
 
         with rasterio.drivers():
@@ -155,8 +218,3 @@ class Scene(object):
             selection.append(self[band])
 
         return self.__class__(Scene(selection, self.bands))
-
-    def has_bands(self, bands):
-        for b in bands:
-            if b not in self.bands:
-                raise SatProcessError('Band %s is required' % b)
