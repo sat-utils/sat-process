@@ -3,6 +3,7 @@ import re
 from copy import copy
 
 import rasterio
+# import numpy as np
 from errors import SatProcessError
 
 
@@ -13,10 +14,26 @@ class Raster(object):
         self.raster = raster
         self.index = index
         self.bandname = bandname
+        self.np = None
+
+    def __getattr__(self, name):
+        return getattr(self.raster, name)
+
+    def read(self):
+        if self.np is None:
+            self.np = self.raster.read(self.index)
+        return self.np
+
+    def write(self, arr):
+        self.np = arr
 
     @property
     def filename(self):
         return self.raster.name
+
+    @property
+    def basename(self):
+        return os.path.splitext(os.path.basename(self.filename))[0]
 
 
 class Scene(object):
@@ -93,9 +110,15 @@ class Scene(object):
     def nbands(self):
         return len(self.rasters)
 
+    def basename(self):
+        return self.rasters[0].basename
+
     @property
     def bands(self):
         return [r.bandname for r in self.rasters]
+
+    def bandnames(self):
+        return self.bands
 
     @property
     def band_numbers(self):
@@ -109,13 +132,29 @@ class Scene(object):
         else:
             return None
 
+    def save(self, path, dtype=None):
+        """ Saves the first three rasters to the same file """
+
+        rasterio_options = self.rasters[0].profile
+        rasterio_options.update(
+            count=3,
+            photometric='RGB',
+            nodata=0,
+        )
+
+        with rasterio.drivers():
+            output = rasterio.open(path, 'w', **rasterio_options)
+
+            for i in range(0, 3):
+                output.write(self.rasters[i].read(), i + 1)
+
     def select(self, bands):
         """ Return instance of Scene instead of GeoImage """
         selection = []
         for band in bands:
             selection.append(self[band])
 
-        return Scene(selection, self.bands)
+        return self.__class__(Scene(selection, self.bands))
 
     def has_bands(self, bands):
         for b in bands:
