@@ -117,3 +117,40 @@ def rescale_intensity(image, in_range='image', out_range='dtype'):
 
     image = (image - imin) / float(imax - imin)
     return dtype(image * (omax - omin) + omin)
+
+
+def color_map_reader(path):
+    """
+    reads the colormap from a text file given as path.
+    """
+
+    max_value = 255
+    mode = None
+
+    try:
+        i = 0
+        colormap = {}
+        with open(path) as cmap:
+            lines = cmap.readlines()
+            for line in lines:
+                if not mode:
+                    if 'mode = ' in line:
+                        mode = float(line.replace('mode = ', ''))
+                    else:
+                        continue
+                else:
+                    str = line.split()
+                    if str == []:  # when there are empty lines at the end of the file
+                        break
+                    colormap.update(
+                        {
+                            i: (int(round(float(str[0]) * max_value / mode)),
+                                int(round(float(str[1]) * max_value / mode)),
+                                int(round(float(str[2]) * max_value / mode)))
+                        }
+                    )
+                    i += 1
+    except IOError:
+        pass
+
+    return colormap
