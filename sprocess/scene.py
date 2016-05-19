@@ -257,7 +257,6 @@ class Scene(object):
 
             for i in range(0, count):
                 band = self.rasters[i].read()
-
                 output.write(band, i + 1)
 
     def select(self, bands):

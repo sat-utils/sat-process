@@ -7,6 +7,7 @@ from gippy.algorithms import indices
 from utils import rescale_intensity
 from errors import SatProcessError
 from scene import Raster
+from converter import convert
 
 
 class Product(object):
@@ -103,10 +104,10 @@ class NDVI(object):
     def ndvi(self, path=None):
         self.has_bands(['nir', 'red'])
 
-        nir = self['nir'].read()
-        red = self['red'].read()
+        nir = self['nir'].read().astype('float32')
+        red = self['red'].read().astype('float32')
 
-        ndvi = np.true_divide((nir - red), (nir + red))
+        ndvi = np.nan_to_num(np.true_divide((nir - red), (nir + red)))
 
         ndvi_raster = Raster(
             bandname='ndvi',
@@ -116,7 +117,7 @@ class NDVI(object):
             affine=self['red'].affine,
             height=self['red'].height,
             width=self['red'].width,
-            dtype='float64',
+            dtype='float32',
             profile=self['red'].profile
         )
         self.rasters.append(ndvi_raster)
