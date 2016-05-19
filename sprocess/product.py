@@ -6,6 +6,7 @@ import numpy as np
 from gippy.algorithms import indices
 from utils import rescale_intensity
 from errors import SatProcessError
+from scene import Raster
 
 
 class Product(object):
@@ -39,7 +40,7 @@ class BaseIndices(Product):
         return self.__class__(new_image)
 
 
-class ColorCorrection(BaseIndices):
+class ColorCorrection(object):
 
     def snow_cloud_coverage(self):
 
@@ -58,19 +59,12 @@ class ColorCorrection(BaseIndices):
 
         return perc
 
-    def color_correction(self, bands=range(0, 3), snow_cloud_coverage=0, auto_cloud=True):
-
-        if auto_cloud:
-            snow_cloud_coverage = self.snow_cloud_coverage()
-
-        if not isinstance(bands, list):
-            raise SatProcessError('bands must be a python list')
+    def color_correction(self, snow_cloud_coverage=0):
 
         print('color correcting')
 
         i = 0
-        for i in bands:
-            band = self[i]
+        for band in self:
             band_np = band.read()
             p_low, cloud_cut_low = np.percentile(band_np[np.logical_and(band_np > 0, band_np < 65535)],
                                                  (0, 100 - (snow_cloud_coverage * 3 / 4)))
@@ -88,7 +82,7 @@ class ColorCorrection(BaseIndices):
         return self
 
 
-class TrueColor(BaseIndices):
+class TrueColor(object):
 
     def true_color(self, path=None):
         required_bands = ['red', 'green', 'blue']
@@ -102,19 +96,32 @@ class TrueColor(BaseIndices):
         return rgb
 
 
-class NDVI(BaseIndices):
+class NDVI(object):
     description = 'Normalized Difference Vegetation Index (NDVI) from TOA reflectance'
     ndvi_enabled = False
 
     def ndvi(self, path=None):
-        # Make sure band red and nir are present
-        if 'nir' not in self.bands:
-            raise SatProcessError('nir band is not provided')
+        self.has_bands(['nir', 'red'])
 
-        if 'red' not in self.bands:
-            raise SatProcessError('red band is not provided')
+        nir = self['nir'].read()
+        red = self['red'].read()
 
-        return self.process('ndvi', path)
+        ndvi = np.true_divide((nir - red), (nir + red))
+
+        ndvi_raster = Raster(
+            bandname='ndvi',
+            np_array=ndvi,
+            name='ndvi',
+            crs=self['red'].crs,
+            affine=self['red'].affine,
+            height=self['red'].height,
+            width=self['red'].width,
+            dtype='float64',
+            profile=self['red'].profile
+        )
+        self.rasters.append(ndvi_raster)
+
+        return self
 
 
 class EVI(BaseIndices):
