@@ -234,7 +234,7 @@ class Scene(object):
 
         return self
 
-    def save(self, path, driver='GTiff'):
+    def save(self, path, driver='GTiff', colormap=None):
         """ Saves the first three rasters to the same file """
 
         # get image data from the first raster
@@ -258,6 +258,9 @@ class Scene(object):
             for i in range(0, count):
                 band = self.rasters[i].read()
                 output.write(band, i + 1)
+
+                if colormap:
+                    output.write_colormap(i + 1, colormap)
 
     def select(self, bands):
         """ Return instance of Scene instead of GeoImage """
