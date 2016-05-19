@@ -45,9 +45,6 @@ class Raster(object):
         self.np = np_array
         self.reprojected = False
 
-    # def __getattr__(self, name):
-    #     return getattr(self.raster, name)
-
     @property
     def basename(self):
         return os.path.splitext(os.path.basename(self.filename))[0]
