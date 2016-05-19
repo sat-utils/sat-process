@@ -41,14 +41,36 @@ class BaseIndices(Product):
 
 class ColorCorrection(BaseIndices):
 
-    def color_correction(self, snow_cloud_coverage=0):
+    def snow_cloud_coverage(self):
+
+        self.has_bands(['quality'])
+
+        quality = self['quality'].read()
+        cloud_high_conf = int('1100000000000000', 2)
+        snow_high_conf = int('0000110000000000', 2)
+        fill_pixels = int('0000000000000001', 2)
+        cloud_mask = np.bitwise_and(quality, cloud_high_conf) == cloud_high_conf
+        snow_mask = np.bitwise_and(quality, snow_high_conf) == snow_high_conf
+        fill_mask = np.bitwise_and(quality, fill_pixels) == fill_pixels
+
+        perc = np.true_divide(np.sum(cloud_mask | snow_mask),
+                              quality.size - np.sum(fill_mask)) * 100.0
+
+        return perc
+
+    def color_correction(self, bands=range(0, 3), snow_cloud_coverage=0, auto_cloud=True):
+
+        if auto_cloud:
+            snow_cloud_coverage = self.snow_cloud_coverage()
+
+        if not isinstance(bands, list):
+            raise SatProcessError('bands must be a python list')
 
         print('color correcting')
-        if self.band_numbers > 3:
-            raise SatProcessError('Color Correction can only be applied on three bands')
 
         i = 0
-        for band in self:
+        for i in bands:
+            band = self[i]
             band_np = band.read()
             p_low, cloud_cut_low = np.percentile(band_np[np.logical_and(band_np > 0, band_np < 65535)],
                                                  (0, 100 - (snow_cloud_coverage * 3 / 4)))
@@ -68,7 +90,7 @@ class ColorCorrection(BaseIndices):
 
 class TrueColor(BaseIndices):
 
-    def true_color(self, path=None, dtype=None):
+    def true_color(self, path=None):
         required_bands = ['red', 'green', 'blue']
 
         # make sure red, green, blue is present
@@ -76,7 +98,7 @@ class TrueColor(BaseIndices):
         rgb = self.select(required_bands)
 
         if path:
-            rgb.save(path, dtype)
+            rgb.save(path)
         return rgb
 
 
