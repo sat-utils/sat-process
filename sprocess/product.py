@@ -68,26 +68,15 @@ class ColorCorrection(BaseIndices):
 
 class TrueColor(BaseIndices):
 
-    def true_color(self, path=None, dtype='byte'):
+    def true_color(self, path=None, dtype=None):
         required_bands = ['red', 'green', 'blue']
-        args = [path]
-        kwargs = {}
 
         # make sure red, green, blue is present
         self.has_bands(required_bands)
         rgb = self.select(required_bands)
 
-        if dtype:
-            kwargs['dtype'] = dtype
-
-        # if dtype in ['uint8', 'byte']:
-            # self = rgb.autoscale(1, 255)
-
-        for r in rgb:
-            print(r.height)
-
         if path:
-            rgb.save(*args, **kwargs)
+            rgb.save(path, dtype)
         return rgb
 
 
