@@ -7,6 +7,7 @@ import numpy as np
 from rasterio import crs
 from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 from errors import SatProcessError
+from converter import convert
 
 
 class Raster(object):
@@ -205,11 +206,18 @@ class Scene(object):
             photometric='RGB',
         )
 
+        if dtype:
+            rasterio_options['dtype'] = dtype
+
         with rasterio.drivers():
             output = rasterio.open(path, 'w', **rasterio_options)
 
             for i in range(0, 3):
-                output.write(self.rasters[i].read(), i + 1)
+                band = self.rasters[i].read()
+
+                if dtype:
+                    band = convert(band, getattr(np, dtype))
+                output.write(band, i + 1)
 
     def select(self, bands):
         """ Return instance of Scene instead of GeoImage """
