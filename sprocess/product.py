@@ -7,7 +7,6 @@ from gippy.algorithms import indices
 from utils import rescale_intensity
 from errors import SatProcessError
 from scene import Raster
-from converter import convert
 
 
 class Product(object):
