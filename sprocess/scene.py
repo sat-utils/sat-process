@@ -12,22 +12,41 @@ from converter import convert
 
 class Raster(object):
 
-    def __init__(self, raster, index, bandname):
+    def __init__(self, raster=None, index=None, bandname=None, np_array=None, **kwargs):
 
-        self.raster = raster
-        self.index = index
+        if not bandname:
+            raise SatProcessError('You must provide bandname')
+
         self.bandname = bandname
-        self.np = None
-        self.crs = raster.crs
-        self.affine = raster.affine
-        self.width = raster.width
-        self.height = raster.height
-        self.dtype = raster.meta['dtype']
 
+        if raster:
+            if not index:
+                raise SatProcessError('You must provider index number for the Raster')
+
+            self.raster = raster
+            self.index = index
+            self.name = raster.name
+            self.crs = raster.crs
+            self.affine = raster.affine
+            self.width = raster.width
+            self.height = raster.height
+            self.dtype = raster.meta['dtype']
+            self._profile = raster.profile
+        else:
+            if not isinstance(np_array, np.ndarray):
+                raise SatProcessError('If the Raster class is not initialize from a Rasterio object ' +
+                                      'then you must provide a numpy array')
+            requried_kwargs = ['name', 'crs', 'affine', 'width', 'height', 'dtype', 'profile']
+            for key in requried_kwargs:
+                if key not in kwargs:
+                    raise SatProcessError('%s is required when setting up a raster from numpy array' % key)
+                setattr(self, key, kwargs[key])
+
+        self.np = np_array
         self.reprojected = False
 
-    def __getattr__(self, name):
-        return getattr(self.raster, name)
+    # def __getattr__(self, name):
+    #     return getattr(self.raster, name)
 
     @property
     def basename(self):
@@ -35,13 +54,11 @@ class Raster(object):
 
     @property
     def filename(self):
-        return self.raster.name
+        return self.name
 
     @property
     def profile(self):
-        _profile = self.raster.profile
-
-        _profile.update(
+        self._profile.update(
             height=self.height,
             width=self.width,
             crs=self.crs,
@@ -49,9 +66,13 @@ class Raster(object):
         )
 
         if self.reprojected:
-            _profile['transform'] = self.affine
+            self._profile['transform'] = self.affine
 
-        return _profile
+        return self._profile
+
+    @profile.setter
+    def profile(self, value):
+        self._profile = value
 
     def read(self):
         if self.np is None:
@@ -219,17 +240,22 @@ class Scene(object):
         # get image data from the first raster
         raster = self.rasters[0]
 
+        count = self.nbands() if self.nbands() < 3 else 3
+        print(count)
+
         rasterio_options = raster.profile
         rasterio_options.update(
-            count=3,
-            photometric='RGB',
+            count=count,
             driver=driver,
         )
+
+        if count == 3:
+            rasterio_options['photometric'] = 'RGB'
 
         with rasterio.drivers():
             output = rasterio.open(path, 'w', **rasterio_options)
 
-            for i in range(0, 3):
+            for i in range(0, count):
                 band = self.rasters[i].read()
 
                 output.write(band, i + 1)
