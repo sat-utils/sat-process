@@ -22,6 +22,7 @@ class Raster(object):
         self.affine = raster.affine
         self.width = raster.width
         self.height = raster.height
+        self.dtype = raster.meta['dtype']
 
         self.reprojected = False
 
@@ -43,7 +44,8 @@ class Raster(object):
         _profile.update(
             height=self.height,
             width=self.width,
-            crs=self.crs
+            crs=self.crs,
+            dtype=self.dtype
         )
 
         if self.reprojected:
@@ -54,6 +56,15 @@ class Raster(object):
     def read(self):
         if self.np is None:
             self.np = self.raster.read(self.index)
+        return self.np
+
+    def recast(self, dtype):
+        try:
+            self.np = convert(self.read(), getattr(np, dtype))
+            self.dtype = dtype
+        except AttributeError:
+            raise SatProcessError('data type %s is invalid' % dtype)
+
         return self.np
 
     def reproject(self, dst_crs):
@@ -190,11 +201,19 @@ class Scene(object):
             if b not in self.bands:
                 raise SatProcessError('Band %s is required' % b)
 
+    def recast(self, dtype):
+        for raster in self.rasters:
+            raster.recast(dtype)
+
+        return self
+
     def reproject(self, dst_crs):
         for r in self.rasters:
             r.reproject(dst_crs)
 
-    def save(self, path, dtype=None):
+        return self
+
+    def save(self, path, driver='GTiff'):
         """ Saves the first three rasters to the same file """
 
         # get image data from the first raster
@@ -204,10 +223,8 @@ class Scene(object):
         rasterio_options.update(
             count=3,
             photometric='RGB',
+            driver=driver,
         )
-
-        if dtype:
-            rasterio_options['dtype'] = dtype
 
         with rasterio.drivers():
             output = rasterio.open(path, 'w', **rasterio_options)
@@ -215,8 +232,6 @@ class Scene(object):
             for i in range(0, 3):
                 band = self.rasters[i].read()
 
-                if dtype:
-                    band = convert(band, getattr(np, dtype))
                 output.write(band, i + 1)
 
     def select(self, bands):
