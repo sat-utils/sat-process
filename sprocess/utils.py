@@ -1,4 +1,7 @@
 import numpy as np
+import rasterio
+from rasterio.warp import transform_bounds
+from rasterio.coords import disjoint_bounds, BoundingBox
 
 
 def intensity_range(image, range_values='image', clip_negative=False):
@@ -154,3 +157,78 @@ def color_map_reader(path):
         pass
 
     return colormap
+
+
+def adjust_bounding_box(bounds1, bounds2):
+    """ If the bounds 2 corners are outside of bounds1, they will be adjusted to bounds1 corners
+    @params
+    bounds1 - The source bounding box
+    bounds2 - The target bounding box that has to be within bounds1
+    @return
+    A bounding box tuple in (y1, x1, y2, x2) format
+    """
+
+    # out of bound check
+    # If it is completely outside of target bounds, return target bounds
+    if ((bounds2[0] > bounds1[0] and bounds2[2] > bounds1[0]) or
+            (bounds2[2] < bounds1[2] and bounds2[2] < bounds1[0])):
+        return bounds1
+
+    if ((bounds2[1] < bounds1[1] and bounds2[3] < bounds1[1]) or
+            (bounds2[3] > bounds1[3] and bounds2[1] > bounds1[3])):
+        return bounds1
+
+    new_bounds = list(bounds2)
+
+    # Adjust Y axis (Longitude)
+    if (bounds2[0] > bounds1[0] or bounds2[0] < bounds1[3]):
+        new_bounds[0] = bounds1[0]
+    if (bounds2[2] < bounds1[2] or bounds2[2] > bounds1[0]):
+        new_bounds[2] = bounds1[2]
+
+    # Adjust X axis (Latitude)
+    if (bounds2[1] < bounds1[1] or bounds2[1] > bounds1[3]):
+        new_bounds[1] = bounds1[1]
+    if (bounds2[3] > bounds1[3] or bounds2[3] < bounds1[1]):
+        new_bounds[3] = bounds1[3]
+
+    return tuple(new_bounds)
+
+
+def clip(src_path, dst_path, bounds, crs=None):
+
+    if not isinstance(bounds, list):
+        raise Exception('Bounds must be a python list')
+
+    with rasterio.drivers():
+        with rasterio.open(src_path, 'r') as src:
+
+            if not crs:
+                crs = src.crs
+            bounds = transform_bounds(
+                crs,
+                src.crs,
+                *bounds
+            )
+
+            if disjoint_bounds(bounds, src.bounds):
+                bounds = adjust_bounding_box(src.bounds, bounds)
+
+            window = src.window(*bounds)
+
+            out_kwargs = src.meta.copy()
+            out_kwargs.update({
+                'height': window[0][1] - window[0][0],
+                'width': window[1][1] - window[1][0],
+                'transform': src.window_transform(window)
+            })
+
+            with rasterio.open(dst_path, 'w', **out_kwargs) as out:
+                try:
+                    # write color map if exist
+                    for index in src.indexes:
+                        out.write_colormap(index, src.colormap(index))
+                except ValueError:
+                    pass
+
+                out.write(src.read(window=window))
