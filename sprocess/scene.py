@@ -18,12 +18,14 @@ class Raster(object):
             raise SatProcessError('You must provide bandname')
 
         self.bandname = bandname
+        self.nodata = 0
 
         if raster:
             if not index:
                 raise SatProcessError('You must provider index number for the Raster')
 
             self.raster = raster
+            self.meta = raster.meta
             self.index = index
             self.name = raster.name
             self.crs = raster.crs
@@ -32,6 +34,7 @@ class Raster(object):
             self.height = raster.height
             self.dtype = raster.meta['dtype']
             self._profile = raster.profile
+            self.nodata = raster.nodata
         else:
             if not isinstance(np_array, np.ndarray):
                 raise SatProcessError('If the Raster class is not initialize from a Rasterio object ' +
@@ -59,7 +62,8 @@ class Raster(object):
             height=self.height,
             width=self.width,
             crs=self.crs,
-            dtype=self.dtype
+            dtype=self.dtype,
+            nodata=self.nodata,
         )
 
         if self.reprojected:
@@ -232,7 +236,7 @@ class Scene(object):
 
         return self
 
-    def save(self, path, driver='GTiff', colormap=None, bands=None):
+    def save(self, path, driver='GTiff', colormap=None, bands=None, nodata=None):
         """ Saves the first three rasters to the same file """
 
         if not path:
@@ -256,6 +260,9 @@ class Scene(object):
 
         if count == 3:
             rasterio_options['photometric'] = 'RGB'
+
+        if nodata:
+            rasterio_options['nodata'] = nodata
 
         with rasterio.drivers():
             output = rasterio.open(path, 'w', **rasterio_options)
