@@ -180,6 +180,19 @@ class Scene(object):
     def basename(self):
         return self.rasters[0].basename
 
+    def delete(self, keys):
+        """ Remove raster from the scene """
+
+        if not isinstance(keys, list):
+            raise SatProcessError('Keys must be a python list')
+
+        for key in keys:
+            if isinstance(key, int):
+                del self.rasters[key]
+            elif isinstance(key, str):
+                index = self.bands.index(key)
+                del self.rasters[index]
+
     def filenames(self):
         return [r.filename for r in self.rasters]
 
