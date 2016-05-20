@@ -1,26 +1,24 @@
 from .scene import Scene
-from .product import NDVI, TrueColor
+from .product import NDVI, TrueColor, ColorCorrection
 
 
-class Landsat8(Scene, NDVI, TrueColor):
+class Sentinel2(Scene, NDVI, TrueColor, ColorCorrection):
     description = 'Landsat Scene'
 
     # bandmap
     _bandmap = {
-        'B1': 'coastal',
-        'B2': 'blue',
-        'B3': 'green',
-        'B4': 'red',
-        'B5': 'nir',
-        'B6': 'swir1',
-        'B7': 'swir2',
-        'B8': 'pan',
-        'B9': 'cirrus',
-        'BQA': 'quality'
+        'B01': 'coastal',
+        'B02': 'blue',
+        'B03': 'green',
+        'B04': 'red',
+        'B08': 'nir',
+        'B10': 'cirrus',
+        'B11': 'swir1',
+        'B12': 'swir2'
     }
 
     def __init__(self, *args, **kwargs):
-        super(Landsat8, self).__init__(*args, **kwargs)
+        super(Sentinel2, self).__init__(*args, **kwargs)
 
         filenames = self.filenames()
         for i, name in enumerate(filenames):
