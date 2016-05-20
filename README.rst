@@ -12,6 +12,48 @@ Process remote sensing images with this library using two main steps:
 
 2. Create process object with the Scene object and desired functions
 
+Examples
+========
+
+Landsat8
+--------
+
+.. code-block:: python
+
+    from sprocess.landsat8 import Landsat8
+
+    filenames = [
+        'LC80420362016069LGN00_B11.TIF',
+        'LC80420362016069LGN00_B10.TIF',
+        'LC80420362016069LGN00_B9.TIF',
+        'LC80420362016069LGN00_B8.TIF',
+        'LC80420362016069LGN00_B7.TIF',
+        'LC80420362016069LGN00_B6.TIF',
+        'LC80420362016069LGN00_B5.TIF',
+        'LC80420362016069LGN00_B4.TIF',
+        'LC80420362016069LGN00_B3.TIF',
+        'LC80420362016069LGN00_B2.TIF',
+        'LC80420362016069LGN00_B1.TIF'
+    ]
+
+    # create a new scene object
+    scene = Landsat(filenames)
+
+    # print list of filenames
+    print(scene.filenames())
+
+    # Landsat 8 automatically names each file if the band number is includes in the filename
+
+    print(scene.bands)
+    # ['B11', 'B10', 'cirrus', 'pan', 'swir2', 'swir1', 'nir', 'red', 'green', 'blue', 'coastal']
+
+    # select red, green and blue bands, color correct and then save them
+
+    cloud = scene.snow_cloud_coverage()
+    rgb = scene.select(['red', 'green', 'blue', 'quality'])
+    rgb.color_correction(cloud).true_color('my_true_color_scene.tif')
+
+
 Standard Band Names
 ===================
 
