@@ -231,14 +231,18 @@ class Scene(object):
 
         return self
 
-    def save(self, path, driver='GTiff', colormap=None):
+    def save(self, path, driver='GTiff', colormap=None, bands=None):
         """ Saves the first three rasters to the same file """
 
         # get image data from the first raster
         raster = self.rasters[0]
 
-        count = self.nbands() if self.nbands() < 3 else 3
-        print(count)
+        if bands and isinstance(bands, list) and len(bands) < 4:
+            count = len(bands)
+            iterator = bands
+        else:
+            count = self.nbands() if self.nbands() < 3 else 3
+            iterator = range(0, count)
 
         rasterio_options = raster.profile
         rasterio_options.update(
@@ -252,8 +256,8 @@ class Scene(object):
         with rasterio.drivers():
             output = rasterio.open(path, 'w', **rasterio_options)
 
-            for i in range(0, count):
-                band = self.rasters[i].read()
+            for i, key in enumerate(iterator):
+                band = self[key].read()
                 output.write(band, i + 1)
 
                 if colormap:
