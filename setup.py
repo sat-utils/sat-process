@@ -35,7 +35,6 @@ setup(
     ],
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
-    scripts=['bin/landsat8', 'bin/sentinel2'],
     install_requires=install_requires,
     dependency_links=dependency_links,
     tests_require=['nose'],
