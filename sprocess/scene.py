@@ -138,6 +138,12 @@ class Scene(object):
         else:
             raise SatProcessError('Invalid band number')
 
+    def _generate_bandname(self, i, bandnames):
+        try:
+            return bandnames[i]
+        except IndexError:
+            return str(i + 1)
+
     def _raster_factory(self, rasters, bandnames):
         raster_array = []
         i = 0
@@ -160,41 +166,6 @@ class Scene(object):
 
         return raster_array
 
-    def _generate_bandname(self, i, bandnames):
-        try:
-            return bandnames[i]
-        except IndexError:
-            return str(i + 1)
-
-    def set_bandname(self, name, band_number):
-        try:
-            self.rasters[band_number - 1].bandname = name
-        except IndexError:
-            raise SatProcessError('The band number doesn\'t exist')
-
-    def set_bandnames(self, names):
-
-        if not isinstance(names, list):
-            raise SatProcessError('Names must be a list')
-
-        if len(names) != len(self.rasters):
-            raise SatProcessError('Names should equal the number of bands')
-
-        for i, name in enumerate(names):
-            try:
-                self.rasters[i].bandname = name
-            except IndexError:
-                raise SatProcessError('The band number doesn\'t exist')
-
-    def filenames(self):
-        return [r.filename for r in self.rasters]
-
-    def nbands(self):
-        return len(self.rasters)
-
-    def basename(self):
-        return self.rasters[0].basename
-
     @property
     def bands(self):
         return [r.bandname for r in self.rasters]
@@ -205,6 +176,12 @@ class Scene(object):
     @property
     def band_numbers(self):
         return self.nbands()
+
+    def basename(self):
+        return self.rasters[0].basename
+
+    def filenames(self):
+        return [r.filename for r in self.rasters]
 
     def get_bandname_from_file(self, value):
 
@@ -218,6 +195,9 @@ class Scene(object):
         for b in bands:
             if b not in self.bands:
                 raise SatProcessError('Band %s is required' % b)
+
+    def nbands(self):
+        return len(self.rasters)
 
     def recast(self, dtype):
         for raster in self.rasters:
@@ -273,3 +253,23 @@ class Scene(object):
             selection.append(self[band])
 
         return self.__class__(Scene(selection, self.bands))
+
+    def set_bandname(self, name, band_number):
+        try:
+            self.rasters[band_number - 1].bandname = name
+        except IndexError:
+            raise SatProcessError('The band number doesn\'t exist')
+
+    def set_bandnames(self, names):
+
+        if not isinstance(names, list):
+            raise SatProcessError('Names must be a list')
+
+        if len(names) != len(self.rasters):
+            raise SatProcessError('Names should equal the number of bands')
+
+        for i, name in enumerate(names):
+            try:
+                self.rasters[i].bandname = name
+            except IndexError:
+                raise SatProcessError('The band number doesn\'t exist')
