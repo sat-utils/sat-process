@@ -3,9 +3,7 @@
 """
 
 import numpy as np
-from gippy.algorithms import indices
 from utils import rescale_intensity
-from errors import SatProcessError
 from scene import Raster
 
 
@@ -24,20 +22,6 @@ class Product(object):
 
     def product_name(self, method):
         return method + '_' + self.basename()
-
-
-class BaseIndices(Product):
-    description = 'Base class for Indices'
-    dependencies = []
-
-    def process(self, method, path=None):
-        args = [self, [method]]
-
-        if path:
-            args.append(path)
-
-        new_image = indices(*args)
-        return self.__class__(new_image)
 
 
 class ColorCorrection(object):
@@ -89,18 +73,15 @@ class TrueColor(object):
 
         # make sure red, green, blue is present
         self.has_bands(required_bands)
-        rgb = self.select(required_bands)
 
         if path:
-            rgb.save(path)
-        return rgb
+            self.save(path, bands=required_bands)
+        return self
 
 
 class NDVI(object):
-    description = 'Normalized Difference Vegetation Index (NDVI) from TOA reflectance'
-    ndvi_enabled = False
 
-    def ndvi(self, path=None):
+    def ndvi(self):
         self.has_bands(['nir', 'red'])
 
         nir = self['nir'].read().astype('float32')
@@ -122,11 +103,3 @@ class NDVI(object):
         self.rasters.append(ndvi_raster)
 
         return self
-
-
-class EVI(BaseIndices):
-    description = 'EVI'
-    evi_enabled = False
-
-    def evi(self, path=None):
-        return self.process('evi', path)
