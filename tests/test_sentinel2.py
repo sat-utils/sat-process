@@ -21,7 +21,7 @@ class TestProduct(unittest.TestCase):
         self.assertEquals(scene.band_numbers, 8)
 
         ndvi = scene.ndvi()
-        self.assertEquals(ndvi.band_numbers, 1)
+        self.assertEquals(ndvi.band_numbers, 9)
         self.assertTrue('ndvi' in ndvi.bands)
 
     def test_ndvi_incorrect_bands(self):
@@ -33,19 +33,11 @@ class TestProduct(unittest.TestCase):
         try:
             scene2.ndvi()
         except SatProcessError as e:
-            self.assertEquals(e.message, 'nir band is not provided')
+            self.assertEquals(e.message, 'Band nir is required')
 
         scene2 = scene.select(['nir', 'blue', 'green'])
 
         try:
             scene2.ndvi()
         except SatProcessError as e:
-            self.assertEquals(e.message, 'red band is not provided')
-
-    def test_evi(self):
-        scene = Sentinel2(self.filenames)
-        self.assertEquals(scene.band_numbers, 8)
-
-        evi = scene.evi()
-        self.assertEquals(evi.band_numbers, 1)
-        self.assertTrue('evi' in evi.bands)
+            self.assertEquals(e.message, 'Band red is required')
