@@ -7,10 +7,10 @@ from tempfile import mkdtemp
 from stestdata import TestData
 from sprocess.scene import Scene
 from sprocess.errors import SatProcessError
-from sprocess.product import NDVI, TrueColor, ColorCorrection
+from sprocess.product import NDVI, TrueColor, ColorCorrection, SnowCoverage
 
 
-class SceneProductForTest(Scene, NDVI, TrueColor, ColorCorrection):
+class SceneProductForTest(Scene, NDVI, TrueColor, ColorCorrection, SnowCoverage):
     """ Since Product is a mixin class we have to mix it with scene in order to be able
     to properly test it """
     pass
