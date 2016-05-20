@@ -234,6 +234,9 @@ class Scene(object):
     def save(self, path, driver='GTiff', colormap=None, bands=None):
         """ Saves the first three rasters to the same file """
 
+        if not path:
+            raise SatProcessError('Path must be provided')
+
         # get image data from the first raster
         raster = self.rasters[0]
 
