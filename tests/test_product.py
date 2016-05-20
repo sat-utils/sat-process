@@ -5,9 +5,9 @@ import rasterio
 import numpy as np
 from tempfile import mkdtemp
 from stestdata import TestData
-from sprocess.scene import Scene
-from sprocess.errors import SatProcessError
-from sprocess.product import NDVI, TrueColor, ColorCorrection, SnowCoverage
+from satio.scene import Scene
+from satio.errors import SatProcessError
+from satio.product import NDVI, TrueColor, ColorCorrection, SnowCoverage
 
 
 class SceneProductForTest(Scene, NDVI, TrueColor, ColorCorrection, SnowCoverage):

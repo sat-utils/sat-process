@@ -5,8 +5,8 @@ import rasterio
 import numpy as np
 from tempfile import mkdtemp
 from stestdata import TestData
-from sprocess.sentinel2 import Sentinel2
-from sprocess.errors import SatProcessError
+from satio.sentinel2 import Sentinel2
+from satio.errors import SatProcessError
 
 
 class TestProduct(unittest.TestCase):

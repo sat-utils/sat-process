@@ -1,7 +1,6 @@
 import unittest
 from stestdata import TestData
-from sprocess.landsat8 import Landsat8
-from sprocess.errors import SatProcessError
+from satio.landsat8 import Landsat8
 
 
 class TestProduct(unittest.TestCase):

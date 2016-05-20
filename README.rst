@@ -19,7 +19,7 @@ Examples
 
 .. code-block:: python
 
-    from sprocess.landsat8 import Landsat8
+    from satio.landsat8 import Landsat8
 
     filenames = [
         'LC80420362016069LGN00_B11.TIF',
@@ -56,7 +56,7 @@ Examples
 
 .. code-block:: python
 
-    from sprocess.sentinel2 import Sentinel2
+    from satio.sentinel2 import Sentinel2
 
     filenames = [
         'B01.jp2',
