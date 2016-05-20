@@ -166,6 +166,14 @@ class Scene(object):
 
         return raster_array
 
+    def add(self, raster):
+        """ adds a raster to the scene """
+        if not isinstance(raster, Raster):
+            raise SatProcessError('raster must be of type Raster')
+        self.rasters.append(raster)
+
+        return self
+
     @property
     def bands(self):
         return [r.bandname for r in self.rasters]
