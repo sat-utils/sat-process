@@ -15,8 +15,7 @@ Process remote sensing images with this library using two main steps:
 Examples
 ========
 
-Landsat8
---------
+**Landsat8:**
 
 .. code-block:: python
 
@@ -37,7 +36,7 @@ Landsat8
     ]
 
     # create a new scene object
-    scene = Landsat(filenames)
+    scene = Landsat8(filenames)
 
     # print list of filenames
     print(scene.filenames())
@@ -48,10 +47,42 @@ Landsat8
     # ['B11', 'B10', 'cirrus', 'pan', 'swir2', 'swir1', 'nir', 'red', 'green', 'blue', 'coastal']
 
     # select red, green and blue bands, color correct and then save them
-
     cloud = scene.snow_cloud_coverage()
-    rgb = scene.select(['red', 'green', 'blue', 'quality'])
+    rgb = scene.select(['red', 'green', 'blue'])
     rgb.color_correction(cloud).true_color('my_true_color_scene.tif')
+
+
+**Sentinel2:**
+
+.. code-block:: python
+
+    from sprocess.sentinel2 import Sentinel2
+
+    filenames = [
+        'B01.jp2',
+        'B02.jp2',
+        'B03.jp2',
+        'B04.jp2',
+        'B08.jp2',
+        'B10.jp2',
+        'B11.jp2',
+        'B12.jp2',
+    ]
+
+    # create a new scene object
+    scene = Sentinel2(filenames)
+
+    # print list of filenames
+    print(scene.filenames())
+
+    # Sentinel2 automatically names each file if the band number is includes in the filename
+
+    print(scene.bands)
+    # ['coastal', 'blue', 'green', 'red', 'nir', 'cirrus', 'swir1', 'swir2']
+
+    # select red, green and blue bands, color correct and then save them
+    rgb = scene.select(['red', 'green', 'blue'])
+    rgb.color_correction().true_color('my_true_color_scene.tif')
 
 
 Standard Band Names
