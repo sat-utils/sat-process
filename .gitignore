@@ -12,3 +12,4 @@ MANIFEST
 .tox
 .coverage
 .cache
+scipy_eq
