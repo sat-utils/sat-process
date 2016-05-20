@@ -1,8 +1,8 @@
 from .scene import Scene
-from .product import NDVI, EVI, TrueColor
+from .product import NDVI, TrueColor, ColorCorrection
 
 
-class Sentinel2(Scene, NDVI, EVI, TrueColor):
+class Sentinel2(Scene, NDVI, TrueColor, ColorCorrection):
     description = 'Landsat Scene'
 
     # bandmap
