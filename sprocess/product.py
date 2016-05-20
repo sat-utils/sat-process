@@ -24,7 +24,7 @@ class Product(object):
         return method + '_' + self.basename()
 
 
-class ColorCorrection(object):
+class SnowCoverage(object):
 
     def snow_cloud_coverage(self):
 
@@ -42,6 +42,9 @@ class ColorCorrection(object):
                               quality.size - np.sum(fill_mask)) * 100.0
 
         return perc
+
+
+class ColorCorrection(object):
 
     def color_correction(self, snow_cloud_coverage=0, bands=None):
 
