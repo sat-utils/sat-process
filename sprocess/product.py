@@ -43,12 +43,16 @@ class ColorCorrection(object):
 
         return perc
 
-    def color_correction(self, snow_cloud_coverage=0):
+    def color_correction(self, snow_cloud_coverage=0, bands=None):
 
-        print('color correcting')
+        if isinstance(bands, list):
+            iterator = bands
+        else:
+            iterator = range(0, self.nbands())
 
         i = 0
-        for band in self:
+        for n in iterator:
+            band = self[n]
             band_np = band.read()
             p_low, cloud_cut_low = np.percentile(band_np[np.logical_and(band_np > 0, band_np < 65535)],
                                                  (0, 100 - (snow_cloud_coverage * 3 / 4)))
@@ -68,15 +72,13 @@ class ColorCorrection(object):
 
 class TrueColor(object):
 
-    def true_color(self, path=None):
+    def true_color(self, path):
         required_bands = ['red', 'green', 'blue']
 
         # make sure red, green, blue is present
         self.has_bands(required_bands)
 
-        if path:
-            self.save(path, bands=required_bands)
-        return self
+        return self.save(path, bands=required_bands)
 
 
 class NDVI(object):
