@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-
-from scene import Scene
-from product import Product, NDVI
+from .scene import Scene
+from .product import NDVI, EVI, TrueColor
 
 
-class TOA(Product):
-    description = 'Top of the Atmosphere Reflectance'
+class Sentinel2(Scene, NDVI, EVI, TrueColor):
+    description = 'Landsat Scene'
 
+    # bandmap
     _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
@@ -18,26 +17,14 @@ class TOA(Product):
         'B12': 'swir2'
     }
 
-    @classmethod
-    def pattern(cls):
-        """ Regular expression for matching product files """
-        return r'(.*)_(B.*)\.jp2$'
+    def __init__(self, *args, **kwargs):
+        super(Sentinel2, self).__init__(*args, **kwargs)
 
-    def process(self, **kwargs):
-        """ Create TOA """
-        geoimg = super(TOA, self).process(**kwargs)
-        geoimg.SetNoData(0)
-        geoimg.SetGain(0.0001)
-        return geoimg
-
-
-class Sentinel2Scene(Scene):
-    """ A tile of Sentinel data for same timestamp and spatial region
-        and possibly containing multiple bands """
-
-    _products = {
-        # original products
-        TOA.name(): TOA,
-        # dervied products
-        NDVI.name(): NDVI
-    }
+        filenames = self.filenames()
+        for i, name in enumerate(filenames):
+            band = self.get_bandname_from_file(name)
+            if band:
+                if band in self._bandmap.keys():
+                    self.set_bandname(self._bandmap[band], i + 1)
+                else:
+                    self.set_bandname(band, i + 1)

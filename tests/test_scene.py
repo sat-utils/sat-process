@@ -1,75 +1,52 @@
-#!/usr/bin/env python
-
-import os
-import shutil
 import unittest
-from sprocess import Scene
-import gippy
+from gippy import GeoImage
+from stestdata import TestData
+from sprocess.scene import Scene
 
 
-class _BaseTestScene(unittest.TestCase):
-
-    scene_class = Scene
-
-    sceneid = 'test'
-
-    testdir = os.path.join(os.path.dirname(__file__), 'images')
-
-    @classmethod
-    def setUpClass(cls):
-        if not os.path.exists(cls.testdir):
-            os.mkdir(cls.testdir)
-        gippy.Options.SetVerbose(3)
-
-    @classmethod
-    def tearDownClass(cls):
-        """ Clean up after tests """
-        shutil.rmtree(cls.testdir)
+class TestScene(unittest.TestCase):
 
     def setUp(self):
-        self.scene = self.scene_class.seed_from_directory(self.testdir)
+        self.t = TestData('landsat8')
+        self.filenames = self.t.files[self.t.names[0]]
+        self.bandnames = self.t.bands[self.t.names[0]]
 
-    def test_create_from_directory(self):
-        """ Test creating a scene from directory of images """
-        scene = self.scene.seed_from_directory(self.testdir)
-        geoimg = scene.process('toa')
-        self.assertTrue(geoimg.Basename(), self.sceneid)
+    def test_scene_filenames_only(self):
+        """ Test creation of Scene object with only filenames """
+        images = Scene(self.filenames)
+        self.assertTrue(isinstance(images, GeoImage))
+        self.assertEqual(images.nbands(), len(self.t.files[self.t.names[0]]))
 
-    def test_dc(self):
-        """ Test DC product (if exists) """
-        if 'dc' in self.scene._products:
-            geoimg = self.scene.process('dc')
-            img = geoimg.Read()
-            self.assertTrue(img.shape == (geoimg.NumBands(), 1, geoimg.XSize(), geoimg.YSize()))
-            # how else to test DC values ???
+    def test_scene_filenames_and_bands(self):
+        """ Test creation of Scene object with filenames and bands"""
 
-    # generalize this into loop through test all products
-    def test_ndvi(self):
-        """ Test calculating NDVI product """
-        self.scene.process('ndvi', outfile=os.path.join(self.testdir, '%s_ndvi.tif' % self.sceneid))
-        # check with numpy against original band
-        #geoimg1 = scene.products['']
+        images = Scene(self.filenames)
+        self.assertEqual(images.nbands(), len(self.filenames))
 
+    def test_scene_wrong_input(self):
 
-class TestScene(_BaseTestScene):
-    """ Perform all _BaseTestScene tests with small generic images """
+        with self.assertRaises(Exception):
+            Scene('path/to/file')
 
-    @classmethod
-    def setUpClass(cls):
-        """ Create some test images """
-        super(TestScene, cls).setUpClass()
-        fout = os.path.join(cls.testdir, '%s_dc.tif' % cls.sceneid)
-        if not os.path.exists(fout):
-            geoimg = gippy.GeoImage(fout, 100, 100, 4, gippy.DataType('Float64'))
-            # geoimg.SetBandNames(['blue', 'green', 'red', 'nir'])
-            geoimg.SetBandName('blue', 1)
-            geoimg.SetBandName('green', 2)
-            geoimg.SetBandName('red', 3)
-            geoimg.SetBandName('nir', 4)
-        else:
-            geoimg = gippy.GeoImage(fout)
-        geoimg['nir'] = geoimg['nir'] + 2
-        geoimg['red'] = geoimg['red'] + 1
-        # save with some values for nir and red
-        geoimg.Process()
-        geoimg = None
+        with self.assertRaises(Exception):
+            Scene({'path/to/file': 'red'})
+
+    def test_scene_bands(self):
+        scene = Scene(self.filenames)
+        # Get bands names after opening the files
+        bands = scene.bands
+        self.assertTrue(isinstance(bands, tuple))
+        self.assertEqual(len(bands), 10)
+
+    def test_scene_basename(self):
+        scene = Scene([self.filenames[0]])
+        self.assertEqual(scene.basename(), 'test_B1')
+
+    def test_select(self):
+        scene = Scene(self.filenames)
+        scene.set_bandnames(self.bandnames)
+        self.assertEqual(scene.band_numbers, 10)
+
+        scene2 = scene.select(['red', 'nir'])
+        self.assertEqual(scene.band_numbers, 10)
+        self.assertEqual(scene2.band_numbers, 2)
