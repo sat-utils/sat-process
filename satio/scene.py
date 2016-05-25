@@ -5,6 +5,7 @@ from copy import copy
 import rasterio
 import numpy as np
 from rasterio import crs
+from rasterio.errors import RasterioIOError
 from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 from errors import SatProcessError
 from converter import convert
@@ -162,11 +163,14 @@ class Scene(object):
             else:
                 # if the raster is a filename
                 with rasterio.drivers():
-                    src = rasterio.open(r, 'r')
-                    for index in src.indexes:
-                        new_raster = Raster(src, index, bandname)
-                        raster_array.append(new_raster)
-                        i += 1
+                    try:
+                        src = rasterio.open(r, 'r')
+                        for index in src.indexes:
+                            new_raster = Raster(src, index, bandname)
+                            raster_array.append(new_raster)
+                            i += 1
+                    except RasterioIOError:
+                        print('Could not open %s. Ignoring it.' % r)
 
         return raster_array
 
