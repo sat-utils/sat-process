@@ -36,6 +36,7 @@ class Raster(object):
             self.dtype = raster.meta['dtype']
             self._profile = raster.profile
             self.nodata = raster.nodata
+            self.bounds = raster.bounds
         else:
             if not isinstance(np_array, np.ndarray):
                 raise SatProcessError('If the Raster class is not initialize from a Rasterio object ' +
