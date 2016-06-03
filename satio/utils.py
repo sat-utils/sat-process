@@ -1,7 +1,8 @@
+import os
 import numpy as np
 import rasterio
 from rasterio.warp import transform_bounds
-from rasterio.coords import disjoint_bounds, BoundingBox
+from rasterio.coords import disjoint_bounds
 
 
 def intensity_range(image, range_values='image', clip_negative=False):
@@ -196,6 +197,17 @@ def adjust_bounding_box(bounds1, bounds2):
 
 
 def clip(src_path, dst_path, bounds, crs=None):
+    """ returns a clipped TIF image """
+
+    if os.path.isdir(dst_path):
+        src_segments = os.path.split(src_path)
+        src_filename = os.path.splitext(src_segments[1])
+
+        dst_path = os.path.join(dst_path, src_filename[0] + '.tif')
+    else:
+        dst_segments = os.path.split(dst_path)
+        dst_filename = os.path.splitext(dst_segments[1])
+        dst_path = os.path.join(dst_segments[0], dst_filename[0] + '.tif')
 
     if not isinstance(bounds, list):
         raise Exception('Bounds must be a python list')
@@ -220,7 +232,8 @@ def clip(src_path, dst_path, bounds, crs=None):
             out_kwargs.update({
                 'height': window[0][1] - window[0][0],
                 'width': window[1][1] - window[1][0],
-                'transform': src.window_transform(window)
+                'transform': src.window_transform(window),
+                'driver': 'GTiff'
             })
 
             with rasterio.open(dst_path, 'w', **out_kwargs) as out:
