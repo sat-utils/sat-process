@@ -164,14 +164,19 @@ class Scene(object):
             else:
                 # if the raster is a filename
                 with rasterio.drivers():
-                    try:
+                    frmt = os.path.splitext(os.path.basename(r))[1]
+
+                    if frmt.lower() in ['.tif', '.jp2']:
                         src = rasterio.open(r, 'r')
                         for index in src.indexes:
                             new_raster = Raster(src, index, bandname)
                             raster_array.append(new_raster)
                             i += 1
-                    except RasterioIOError:
-                        print('Could not open %s. Ignoring it.' % r)
+                    else:
+                        print('%s not supported. Ignoring it.' % r)
+
+        if not raster_array:
+            raise SatProcessError('No supported raster file provided')
 
         return raster_array
 
