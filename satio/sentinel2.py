@@ -7,14 +7,14 @@ class Sentinel2(Scene, NDVI, TrueColor, ColorCorrection):
 
     # bandmap
     _bandmap = {
-        'B01': 'coastal',
-        'B02': 'blue',
-        'B03': 'green',
-        'B04': 'red',
-        'B08': 'nir',
-        'B10': 'cirrus',
-        'B11': 'swir1',
-        'B12': 'swir2'
+        1: 'coastal',
+        2: 'blue',
+        3: 'green',
+        4: 'red',
+        8: 'nir',
+        10: 'cirrus',
+        11: 'swir1',
+        12: 'swir2'
     }
 
     def __init__(self, *args, **kwargs):
@@ -24,6 +24,12 @@ class Sentinel2(Scene, NDVI, TrueColor, ColorCorrection):
         for i, name in enumerate(filenames):
             band = self.get_bandname_from_file(name)
             if band:
+                try:
+                    bnum = [s for s in band if s.isdigit()]
+                    band = int(''.join(bnum))
+                except ValueError:
+                    pass
+
                 if band in self._bandmap.keys():
                     self.set_bandname(self._bandmap[band], i + 1)
                 else:
