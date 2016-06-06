@@ -271,7 +271,7 @@ class Scene(object):
         if count == 3:
             rasterio_options['photometric'] = 'RGB'
 
-        if nodata:
+        if isinstance(nodata, int) or isinstance(nodata, float):
             rasterio_options['nodata'] = nodata
 
         with rasterio.drivers():
