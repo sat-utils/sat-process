@@ -103,7 +103,8 @@ class NDVI(object):
             height=self['red'].height,
             width=self['red'].width,
             dtype='float32',
-            profile=self['red'].profile
+            profile=self['red'].profile,
+            bounds=self['red'].bounds
         )
         self.rasters.append(ndvi_raster)
 
