@@ -41,7 +41,7 @@ class Raster(object):
             if not isinstance(np_array, np.ndarray):
                 raise SatProcessError('If the Raster class is not initialize from a Rasterio object ' +
                                       'then you must provide a numpy array')
-            requried_kwargs = ['name', 'crs', 'affine', 'width', 'height', 'dtype', 'profile', 'bounds']
+            requried_kwargs = ['name', 'crs', 'affine', 'width', 'height', 'dtype', 'profile', 'bounds', 'meta']
             for key in requried_kwargs:
                 if key not in kwargs:
                     raise SatProcessError('%s is required when setting up a raster from numpy array' % key)
