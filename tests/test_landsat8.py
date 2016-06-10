@@ -1,6 +1,6 @@
 import unittest
 from stestdata import TestData
-from sprocess.landsat8 import Landsat8
+from sprocess.landsat8 import Landsat8Scene
 from sprocess.errors import SatProcessError
 
 
@@ -12,23 +12,21 @@ class TestProduct(unittest.TestCase):
         self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_product_name(self):
-        scene = Landsat8(self.filenames)
-        self.assertEqual(len(scene.bandnames()), len(scene.filenames()))
-        self.assertEqual(scene.bandnames()[0], 'coastal')
+        scene = Landsat8Scene(self.filenames)
+        geoimg = scene.toa()
+        self.assertEqual(list(geoimg.bandnames()), self.bandnames)
 
     def test_ndvi(self):
-        scene = Landsat8(self.filenames)
-        self.assertEquals(scene.band_numbers, 10)
+        """ NDVI (red, nir) """
+        scene = Landsat8Scene(self.filenames)
+        geoimg = scene.ndvi()
+        self.assertEquals(geoimg.nbands(), 1)
+        self.assertTrue('ndvi' in geoimg.bandnames())
 
-        ndvi = scene.ndvi()
-        self.assertEquals(ndvi.band_numbers, 1)
-        self.assertTrue('ndvi' in ndvi.bands)
-
-    def test_ndvi_incorrect_bands(self):
-        scene = Landsat8(self.filenames)
-        self.assertEquals(scene.band_numbers, 10)
-
-        scene2 = scene.select(['red', 'blue', 'green'])
+    def _test_ndvi_incorrect_bands(self):
+        """ NDVI with wrong bands """
+        scene = Landsat8Scene(self.filenames)
+        self.assertEquals(scene.band_numbers, 8)
 
         try:
             scene2.ndvi()
@@ -41,3 +39,10 @@ class TestProduct(unittest.TestCase):
             scene2.ndvi()
         except SatProcessError as e:
             self.assertEquals(e.message, 'red band is not provided')
+
+    def test_evi(self):
+        """ EVI (nir, red, blue) """
+        scene = Landsat8Scene(self.filenames)
+        geoimg = scene.evi()
+        self.assertEquals(geoimg.nbands(), 1)
+        self.assertTrue('evi' in geoimg.bandnames())

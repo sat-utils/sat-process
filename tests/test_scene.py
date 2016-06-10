@@ -1,52 +1,48 @@
 import unittest
+import os
 from gippy import GeoImage
 from stestdata import TestData
 from sprocess.scene import Scene
 
 
 class TestScene(unittest.TestCase):
+    """ Test default scene with DC, TOA, and NDVI products """
 
     def setUp(self):
         self.t = TestData('landsat8')
-        self.filenames = self.t.files[self.t.names[0]]
-        self.bandnames = self.t.bands[self.t.names[0]]
+        files = self.t.examples[self.t.examples.keys()[0]]
+        self.filenames = []
+        self.bandnames = []
+        for f in files.values():
+            if f['band_type'] != 'pan':
+                self.filenames.append(f['path'])
+                self.bandnames.append(f['band_type'])
 
-    def test_scene_filenames_only(self):
+    def test_scene(self):
         """ Test creation of Scene object with only filenames """
-        images = Scene(self.filenames)
-        self.assertTrue(isinstance(images, GeoImage))
-        self.assertEqual(images.nbands(), len(self.t.files[self.t.names[0]]))
+        scene = Scene(self.filenames)
+        geoimg = scene.dc()
+        self.assertTrue(isinstance(geoimg, GeoImage))
+        self.assertEqual(geoimg.nbands(), len(self.filenames))
 
-    def test_scene_filenames_and_bands(self):
+    def test_scene_bands(self):
         """ Test creation of Scene object with filenames and bands"""
+        scene = Scene(self.filenames, bandnames=self.bandnames)
+        geoimg = scene.dc()
+        self.assertTrue(isinstance(geoimg.bandnames(), tuple))
+        self.assertEqual(geoimg.nbands(), len(self.bandnames))
+        self.assertEqual(list(geoimg.bandnames()), self.bandnames)
 
-        images = Scene(self.filenames)
-        self.assertEqual(images.nbands(), len(self.filenames))
-
-    def test_scene_wrong_input(self):
-
+    def test_scene_invalid(self):
+        """ Test invalid inputs raise exceptions """
         with self.assertRaises(Exception):
             Scene('path/to/file')
 
         with self.assertRaises(Exception):
             Scene({'path/to/file': 'red'})
 
-    def test_scene_bands(self):
-        scene = Scene(self.filenames)
-        # Get bands names after opening the files
-        bands = scene.bands
-        self.assertTrue(isinstance(bands, tuple))
-        self.assertEqual(len(bands), 10)
-
     def test_scene_basename(self):
         scene = Scene([self.filenames[0]])
-        self.assertEqual(scene.basename(), 'test_B1')
-
-    def test_select(self):
-        scene = Scene(self.filenames)
-        scene.set_bandnames(self.bandnames)
-        self.assertEqual(scene.band_numbers, 10)
-
-        scene2 = scene.select(['red', 'nir'])
-        self.assertEqual(scene.band_numbers, 10)
-        self.assertEqual(scene2.band_numbers, 2)
+        geoimg = scene.dc()
+        bname = os.path.basename(os.path.splitext(self.filenames[0])[0])
+        self.assertEqual(geoimg.basename(), bname)

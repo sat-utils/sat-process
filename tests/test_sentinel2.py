@@ -1,6 +1,6 @@
 import unittest
 from stestdata import TestData
-from sprocess.sentinel2 import Sentinel2
+from sprocess.sentinel2 import Sentinel2Scene
 from sprocess.errors import SatProcessError
 
 
@@ -12,23 +12,22 @@ class TestProduct(unittest.TestCase):
         self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_product_name(self):
-        scene = Sentinel2(self.filenames)
-        self.assertEqual(len(scene.bandnames()), len(scene.filenames()))
-        self.assertEqual(scene.bandnames()[0], 'coastal')
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.toa()
+        self.assertEqual(len(geoimg.bandnames()), len(geoimg.filenames()))
+        self.assertEqual(geoimg.bandnames()[0], 'coastal')
 
     def test_ndvi(self):
-        scene = Sentinel2(self.filenames)
+        """ NDVI (red, nir) """
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.ndvi()
+        self.assertEquals(geoimg.nbands(), 1)
+        self.assertTrue('ndvi' in geoimg.bandnames())
+
+    def _test_ndvi_incorrect_bands(self):
+        """ NDVI with wrong bands """
+        scene = Sentinel2Scene(self.filenames)
         self.assertEquals(scene.band_numbers, 8)
-
-        ndvi = scene.ndvi()
-        self.assertEquals(ndvi.band_numbers, 1)
-        self.assertTrue('ndvi' in ndvi.bands)
-
-    def test_ndvi_incorrect_bands(self):
-        scene = Sentinel2(self.filenames)
-        self.assertEquals(scene.band_numbers, 8)
-
-        scene2 = scene.select(['red', 'blue', 'green'])
 
         try:
             scene2.ndvi()
@@ -43,9 +42,8 @@ class TestProduct(unittest.TestCase):
             self.assertEquals(e.message, 'red band is not provided')
 
     def test_evi(self):
-        scene = Sentinel2(self.filenames)
-        self.assertEquals(scene.band_numbers, 8)
-
-        evi = scene.evi()
-        self.assertEquals(evi.band_numbers, 1)
-        self.assertTrue('evi' in evi.bands)
+        """ EVI (nir, red, blue) """
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.evi()
+        self.assertEquals(geoimg.nbands(), 1)
+        self.assertTrue('evi' in geoimg.bandnames())

@@ -1,50 +1,40 @@
 import unittest
 from stestdata import TestData
 from sprocess.scene import Scene
-from sprocess.product import NDVI, EVI, TrueColor
-
-
-class SceneProductForTest(Scene, NDVI, EVI, TrueColor):
-    """ Since Product is a mixin class we have to mix it with scene in order to be able
-    to properly test it """
-    pass
 
 
 class TestProduct(unittest.TestCase):
 
     def setUp(self):
         self.t = TestData('landsat8')
-        self.filenames = self.t.files[self.t.names[0]]
-        self.bandnames = self.t.bands[self.t.names[0]]
+        files = self.t.examples[self.t.examples.keys()[0]]
+        self.filenames = []
+        self.bandnames = []
+        for f in files.values():
+            if f['band_type'] != 'pan':
+                self.filenames.append(f['path'])
+                self.bandnames.append(f['band_type'])
 
-    def test_product_name(self):
-        band = self.t.examples[self.t.names[0]]['B1']['path']
-        scene = SceneProductForTest([band])
-        self.assertEqual(scene.product_name('ndvi'), 'ndvi_test_B1')
+    def test_toa(self):
+        """ Get TOA reflectance """
+        scene = Scene(self.filenames, bandnames=self.bandnames)
+        geoimg = scene.toa()
+        self.assertEqual(geoimg.nbands(), len(self.bandnames))
+        # should contain same bands
+        self.assertEqual(self.bandnames, list(geoimg.bandnames()))
+
+    def test_indices(self):
+        """ Index products (e.g., NDVI, EVI) """
+        scene = Scene(self.filenames, bandnames=self.bandnames)
+        for p in ['ndvi', 'evi']:
+            geoimg = scene[p].process()
+            self.assertTrue(p in geoimg.bandnames())
 
     def test_true_color(self):
-        scene = SceneProductForTest(self.filenames)
-        scene.set_bandnames(self.bandnames)
-        self.assertEquals(scene.nbands(), 10)
-
-        true_color = scene.true_color()
-        self.assertEquals(true_color.nbands(), 3)
-        self.assertTrue('red' == true_color.bands[0])
-
-    def test_ndvi(self):
-        scene = SceneProductForTest(self.filenames)
-        scene.set_bandnames(self.bandnames)
-        self.assertEquals(scene.nbands(), 10)
-
-        ndvi = scene.ndvi()
-        self.assertEquals(ndvi.nbands(), 1)
-        self.assertTrue('ndvi' in ndvi.bands)
-
-    def test_evi(self):
-        scene = SceneProductForTest(self.filenames)
-        scene.set_bandnames(self.bandnames)
-        self.assertEquals(scene.band_numbers, 10)
-
-        evi = scene.evi()
-        self.assertEquals(evi.band_numbers, 1)
-        self.assertTrue('evi' in evi.bands)
+        """ Make 3 band color byte-scaled image """
+        scene = Scene(self.filenames, bandnames=self.bandnames)
+        geoimg = scene.color()
+        self.assertEquals(geoimg.nbands(), 3)
+        self.assertEqual(['red', 'green', 'blue'], list(geoimg.bandnames()))
+        with self.assertRaises(Exception):
+            geoimg = scene.color(['aqua', 'teal', 'turqouise'])
