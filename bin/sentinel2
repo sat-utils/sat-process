@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from sprocess.sentinel2 import Sentinel2Scene as Scene
+from satprocess.sentinel2 import Sentinel2Scene as Scene
 
 '''
     Basic command line parser for processing

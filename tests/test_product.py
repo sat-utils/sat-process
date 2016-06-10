@@ -1,6 +1,6 @@
 import unittest
 from stestdata import TestData
-from sprocess.scene import Scene
+from satprocess.scene import Scene
 
 
 class TestProduct(unittest.TestCase):

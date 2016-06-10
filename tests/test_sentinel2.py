@@ -1,7 +1,7 @@
 import unittest
 from stestdata import TestData
-from sprocess.sentinel2 import Sentinel2Scene
-from sprocess.errors import SatProcessError
+from satprocess.sentinel2 import Sentinel2Scene
+from satprocess.errors import SatProcessError
 
 
 class TestProduct(unittest.TestCase):

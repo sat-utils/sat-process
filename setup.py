@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import imp
 
 here = os.path.abspath(os.path.dirname(__file__))
-__version__ = imp.load_source('sprocess.version', 'sprocess/version.py').__version__
+__version__ = imp.load_source('satprocess.version', 'satprocess/version.py').__version__
 
 # get the dependencies and installs
 with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
@@ -15,7 +15,7 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' not in x]
 
 setup(
-    name='sprocess',
+    name='satprocess',
     version=__version__,
     author='Alireza J (scisco), Matthew Hanson (matthewhanson)',
     description='Multispectral processing on geospatial raster data',

@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from sprocess import Scene
+from satprocess import Scene
 
 '''
     Basic command line parser for processing
