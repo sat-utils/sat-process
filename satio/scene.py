@@ -5,7 +5,6 @@ from copy import copy
 import rasterio
 import numpy as np
 from rasterio import crs
-from rasterio.errors import RasterioIOError
 from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 from errors import SatProcessError
 from converter import convert
@@ -100,7 +99,7 @@ class Raster(object):
             self.crs, dst_crs, self.width, self.height, *self.bounds
         )
 
-        dst = np.zeros((height, width), getattr(np, self.meta['dtype']))
+        dst = np.zeros((height, width), getattr(np, self.dtype))
 
         reproject(
             source=self.read(),
