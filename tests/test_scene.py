@@ -2,7 +2,7 @@ import unittest
 import os
 from gippy import GeoImage
 from stestdata import TestData
-from sprocess.scene import Scene
+from satprocess.scene import Scene
 
 
 class TestScene(unittest.TestCase):
