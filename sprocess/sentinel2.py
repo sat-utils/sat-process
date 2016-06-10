@@ -1,11 +1,12 @@
+
 from .scene import Scene
-from .product import NDVI, EVI, TrueColor
+from gippy import GeoImage
+from .product import Product, NDVI, EVI, Color
 
 
-class Sentinel2(Scene, NDVI, EVI, TrueColor):
-    description = 'Landsat Scene'
+class Sentinel2Product(Product):
+    """ Base class for Sentinel2 products from original files """
 
-    # bandmap
     _bandmap = {
         'B01': 'coastal',
         'B02': 'blue',
@@ -17,14 +18,32 @@ class Sentinel2(Scene, NDVI, EVI, TrueColor):
         'B12': 'swir2'
     }
 
-    def __init__(self, *args, **kwargs):
-        super(Sentinel2, self).__init__(*args, **kwargs)
+    _pattern = r'(.*)_(B.*).jp2'
 
-        filenames = self.filenames()
-        for i, name in enumerate(filenames):
-            band = self.get_bandname_from_file(name)
-            if band:
-                if band in self._bandmap.keys():
-                    self.set_bandname(self._bandmap[band], i + 1)
-                else:
-                    self.set_bandname(band, i + 1)
+    def open(self, filenames, **kwargs):
+        """ Open existing files to get TOA """
+        # open products
+        bandnames = [self.parse_filename(f)[1] for f in filenames]
+        self.geoimg = GeoImage.open(filenames, bandnames=bandnames, gain=0.0001)
+        return self.geoimg
+
+
+class TOA(Sentinel2Product):
+    """ Top of the atmosphere reflectance product optical for Sentinel2 """
+    # Note that this only works with the 4 10m bands: 2, 3, 4, and 8
+
+    name = 'toa'
+    description = 'Top of the Atmosphere reflectance'
+
+
+class Sentinel2Scene(Scene):
+    description = 'Sentinel2 Scene'
+
+    _available_products = [
+        TOA,
+        NDVI,
+        EVI,
+        Color
+    ]
+
+    default_product = 'toa'
