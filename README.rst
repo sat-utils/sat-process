@@ -4,18 +4,15 @@ sat-process
 .. image:: https://travis-ci.org/sat-utils/sat-process.svg?branch=develop
     :target: https://travis-ci.org/sat-utils/sat-process
 
-This is a Python library for processing toolkit for Open Raster Data. This is library can be used for creating data specific processing libraries and command line utilities.
+sat-process is a Python library for processing geospatial raster data. Two sensor classes are provided here: landsat8 and sentinel2,   The Landsat8 class is used to create a 'scene' from original landsat8 pathrow images and metadata files, while the Sentinel2 class creates a 'scene' from Sentinel2 tiles and associated metadata.  The core library can be used to easily build new sensor classes by using the Landsat8 and Sentinel2 classes as examples.
 
-Process remote sensing images with this library using two main steps:
+A 'scene' is a collection of bands covering the same spatial footprint and at the same resolution. These are often spectral bands, but could also be temporal images.  A scene also defines what products may be generated from the available bands (e.g., the Landsat8 class includes the NDVI and TrueColor products).
 
-1. Assemble all required bands and metadata into a Scene object
 
-2. Create process object with the Scene object and desired functions
-
-Standard Band Names
+Band Names
 ===================
 
-Band names are used instead of band numbers, which are unique to each sensor. The average ranges for spectral bandpasses are given in the table below, along with the band numbers for several sensors.
+Band names can be largely standardized when it comes to many algorithms, especially band indices, and can be used instead of band numbers, which are unique to each sensor. The average ranges for spectral bandpasses are given in the table below, along with the band numbers for several sensors.
 
 | Band Name | Band Ranges | Landsat 5 | Landsat 7 | Landsat 8 | Sentinel 2 | MODIS |
 | --------- |:-----------:|:---------:|:---------:|:---------:|:----------:|:-----:|
@@ -31,3 +28,11 @@ Band names are used instead of band numbers, which are unique to each sensor. Th
 | LWIR      | 10.5 - 12.5 | 6         | 8         |           |            |       |
 | LWIR1     | 10.5 - 11.5 |           |           | 10        |            | 31    |
 | LWIR2     | 11.5 - 12.5 |           |           | 11        |            | 32    |
+
+
+Products
+========
+
+There are several standard products available within sat-process.
+
+
