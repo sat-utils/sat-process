@@ -35,34 +35,31 @@ class Scene(object):
         # directory to store output products
         self.outpath = outpath
         # a collection of product class instances
-        # TODO - look at turning into frozen dictionary after __init__
-        self.__products = {n: p(self) for n, p in self._available_products.items()}
+        self.__products__ = {n: p(self) for n, p in self._available_products.items()}
         if bandnames is None:
             bandnames = [self.parse_filename(f)[1] for f in filenames]
         self.filenames = dict(zip(bandnames, filenames))
         # the Scene does not open anything - use specific sensor Scene, or
         #  call Scene[product].open() to seed a product with filenames given here
-        #for p in self._products:
-        #    self._products[p].open(filenames, **kwargs)
 
     def __getattr__(self, attr):
         """ Get processed products as attributes (e.g., scene.ndvi()) """
-        if attr not in self.__products:
+        if attr not in self.__products__:
             raise SatProcessError("%s product not available in %s" % (attr, self.classname()))
         else:
-            return self.__products[attr].process
+            return self.__products__[attr].process
 
     def __getitem__(self, key):
         """ Return GeoImage for this product """
         # TODO - iteratable and other dict-like functions
-        if key not in self.__products:
+        if key not in self.__products__:
             raise SatProcessError("%s product not available in %s" % (key, self.classname()))
-        return self.__products[key]
+        return self.__products__[key]
 
     def available_products(self):
         """ Get list of available products and descriptions """
         # TODO - take into account bands, and what bands available in input products, etc
-        return {k: self.__products[k].description for k in self.__products.keys()}
+        return {k: self.__products__[k].description for k in self.__products__.keys()}
 
     def add_bands(self, product, bands):
         """ Add bands given in self.filenames to product """
@@ -73,7 +70,7 @@ class Scene(object):
 
     @classmethod
     def parse_filename(cls, filename):
-        """ Split out basename and bandname (remapped if _bandmap) """
+        """ Split out basename and bandname (remapped if in _bandmap) """
         m = re.match(cls._pattern, os.path.basename(filename))
         basename = m.group(1)
         bandname = cls._bandmap.get(m.group(2), m.group(2))
