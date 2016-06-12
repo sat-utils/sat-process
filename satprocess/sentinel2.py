@@ -1,11 +1,35 @@
 
 from .scene import Scene
 from gippy import GeoImage
-from .product import Product, NDVI, EVI, Color
+from .product import Product, TOA as _TOA, NDVI, EVI, Color
 
 
-class Sentinel2Product(Product):
+class TOA(_TOA):
     """ Base class for Sentinel2 products from original files """
+   
+    description = 'Sentinel2 TOA'
+
+    dependencies = {}
+
+    def open(self, *args, **kwargs):
+        """ Open existing files to get TOA """
+        super(TOA, self).open(*args, **kwargs)
+        # set gain to convert to  reflectance units
+        self.geoimg.set_gain(0.0001)
+        return self.geoimg
+
+
+class Sentinel2Scene(Scene):
+    description = 'Sentinel2 Scene'
+
+    _available_products = {
+        'toa': TOA,
+        'swir': TOA,
+        'cloudbands': TOA,
+        'ndvi': NDVI,
+        'evi': EVI,
+        'color': Color
+    }
 
     _bandmap = {
         'B01': 'coastal',
@@ -20,30 +44,12 @@ class Sentinel2Product(Product):
 
     _pattern = r'(.*)_(B.*).jp2'
 
-    def open(self, filenames, **kwargs):
-        """ Open existing files to get TOA """
-        # open products
-        bandnames = [self.parse_filename(f)[1] for f in filenames]
-        self.geoimg = GeoImage.open(filenames, bandnames=bandnames, gain=0.0001)
-        return self.geoimg
+    def __init__(self, *args, **kwargs):
+        super(Sentinel2Scene, self).__init__(*args, **kwargs)
+        # populate whatever products/bands available
+        fnames = self.filenames
 
-
-class TOA(Sentinel2Product):
-    """ Top of the atmosphere reflectance product optical for Sentinel2 """
-    # Note that this only works with the 4 10m bands: 2, 3, 4, and 8
-
-    name = 'toa'
-    description = 'Top of the Atmosphere reflectance'
-
-
-class Sentinel2Scene(Scene):
-    description = 'Sentinel2 Scene'
-
-    _available_products = [
-        TOA,
-        NDVI,
-        EVI,
-        Color
-    ]
-
-    default_product = 'toa'
+        self.add_bands('pan', ['pan'])
+        self.add_bands('swir', ['swir1', 'swir2'])
+        self.add_bands('cloudbands', ['coastal', 'cirrus'])
+        self.add_bands('toa', ['blue', 'green', 'red', 'nir'])

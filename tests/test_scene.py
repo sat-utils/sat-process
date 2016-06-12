@@ -3,7 +3,7 @@ import os
 from gippy import GeoImage
 from stestdata import TestData
 from satprocess.scene import Scene
-
+from nose.tools import set_trace
 
 class TestScene(unittest.TestCase):
     """ Test default scene with DC, TOA, and NDVI products """
@@ -14,24 +14,30 @@ class TestScene(unittest.TestCase):
         self.filenames = []
         self.bandnames = []
         for f in files.values():
-            if f['band_type'] != 'pan':
+            if f['band_type'] not in ['pan', 'quality']:
                 self.filenames.append(f['path'])
                 self.bandnames.append(f['band_type'])
 
+    def get_scene(self, **kwargs):
+        scene = Scene(self.filenames, **kwargs)
+        # generic scene, so need to open those files as one of the prroducts
+        scene['dc'].open()
+        return scene
+
     def test_scene(self):
-        """ Test creation of Scene object with only filenames """
-        scene = Scene(self.filenames)
+        """ Create Scene object with only filenames """
+        scene = self.get_scene(bandnames=self.bandnames)
         geoimg = scene.dc()
         self.assertTrue(isinstance(geoimg, GeoImage))
-        self.assertEqual(geoimg.nbands(), len(self.filenames))
+        for b in self.bandnames:
+            self.assertTrue(b in geoimg.bandnames())
 
     def test_scene_bands(self):
         """ Test creation of Scene object with filenames and bands"""
-        scene = Scene(self.filenames, bandnames=self.bandnames)
+        scene = self.get_scene(bandnames=self.bandnames)
         geoimg = scene.dc()
         self.assertTrue(isinstance(geoimg.bandnames(), tuple))
         self.assertEqual(geoimg.nbands(), len(self.bandnames))
-        self.assertEqual(list(geoimg.bandnames()), self.bandnames)
 
     def test_scene_invalid(self):
         """ Test invalid inputs raise exceptions """
@@ -42,7 +48,8 @@ class TestScene(unittest.TestCase):
             Scene({'path/to/file': 'red'})
 
     def test_scene_basename(self):
-        scene = Scene([self.filenames[0]])
+        """ Basename of scene """
+        scene = self.get_scene()
         geoimg = scene.dc()
         bname = os.path.basename(os.path.splitext(self.filenames[0])[0])
         self.assertEqual(geoimg.basename(), bname)
