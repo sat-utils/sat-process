@@ -12,9 +12,13 @@ class TestProduct(unittest.TestCase):
         self.bandnames = self.t.bands[self.t.names[0]]
 
     def test_product_name(self):
+        """ Read in and process scene """
         scene = Landsat8Scene(self.filenames)
         geoimg = scene.toa()
-        self.assertEqual(list(geoimg.bandnames()), self.bandnames)
+        self.assertEqual(len(geoimg.bandnames()), 8)
+        for b in self.bandnames:
+            if b not in ['quality', 'pan']:
+                self.assertTrue(b in geoimg.bandnames())
 
     def test_ndvi(self):
         """ NDVI (red, nir) """

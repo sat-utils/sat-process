@@ -14,8 +14,9 @@ class TestProduct(unittest.TestCase):
     def test_product_name(self):
         scene = Sentinel2Scene(self.filenames)
         geoimg = scene.toa()
-        self.assertEqual(len(geoimg.bandnames()), len(geoimg.filenames()))
-        self.assertEqual(geoimg.bandnames()[0], 'coastal')
+        self.assertEqual(geoimg.nbands(), 4)
+        for b in geoimg.bandnames():
+            self.assertTrue(b in ['red', 'green', 'blue', 'nir'])
 
     def test_ndvi(self):
         """ NDVI (red, nir) """
