@@ -11,36 +11,45 @@ class TestProduct(unittest.TestCase):
         self.filenames = self.t.files[self.t.names[0]]
         self.bandnames = self.t.bands[self.t.names[0]]
 
-    def test_product_name(self):
+    def test_visbands(self):
+        """ Check visible bands present """
         scene = Sentinel2Scene(self.filenames)
         geoimg = scene.toa()
         self.assertEqual(geoimg.nbands(), 4)
         for b in geoimg.bandnames():
             self.assertTrue(b in ['red', 'green', 'blue', 'nir'])
 
+    def test_swirbands(self):
+        """ Check swir bands present """
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.swir()
+        self.assertEqual(geoimg.nbands(), 2)
+        for b in geoimg.bandnames():
+            self.assertTrue(b in ['swir1', 'swir2'])
+
+    def test_cbands(self):
+        """ Check cloud bands present """
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.cbands()
+        self.assertEqual(geoimg.nbands(), 2)
+        for b in geoimg.bandnames():
+            self.assertTrue(b in ['coastal', 'cirrus'])
+
     def test_ndvi(self):
-        """ NDVI (red, nir) """
+        """ Generate NDVI product (red, nir) """
         scene = Sentinel2Scene(self.filenames)
         geoimg = scene.ndvi()
         self.assertEquals(geoimg.nbands(), 1)
         self.assertTrue('ndvi' in geoimg.bandnames())
 
-    def _test_ndvi_incorrect_bands(self):
-        """ NDVI with wrong bands """
+    def test_incorrect_bands(self):
+        """ Generate NDVI without bands available """
         scene = Sentinel2Scene(self.filenames)
-        self.assertEquals(scene.band_numbers, 8)
-
+        scene["toa"].geoimg = scene["toa"].geoimg.select(['green', 'blue', 'nir'])
         try:
-            scene2.ndvi()
+            scene.ndvi()
         except SatProcessError as e:
-            self.assertEquals(e.message, 'nir band is not provided')
-
-        scene2 = scene.select(['nir', 'blue', 'green'])
-
-        try:
-            scene2.ndvi()
-        except SatProcessError as e:
-            self.assertEquals(e.message, 'red band is not provided')
+            self.assertEquals(e.message, 'ndvi requires bands: nir red')
 
     def test_evi(self):
         """ EVI (nir, red, blue) """
@@ -48,3 +57,11 @@ class TestProduct(unittest.TestCase):
         geoimg = scene.evi()
         self.assertEquals(geoimg.nbands(), 1)
         self.assertTrue('evi' in geoimg.bandnames())
+
+    def test_color(self):
+        """ Generate TrueColor product """
+        scene = Sentinel2Scene(self.filenames)
+        geoimg = scene.color()
+        self.assertEqual(geoimg.nbands(), 3)
+        for b in geoimg.bandnames():
+            self.assertTrue(b in ['red', 'green', 'blue'])
