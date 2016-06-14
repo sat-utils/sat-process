@@ -3,7 +3,6 @@
 """
 
 import os
-import re
 from gippy import GeoImage
 from gippy.algorithms import indices
 from errors import SatProcessError
@@ -43,7 +42,7 @@ class Product(object):
             geoimg = self.scene[d].process()
             # check required bands present
             if not geoimg.bands_exist(self.dependencies[d]):
-                raise SatProcessError('%s requires bands: %s' % (self.name, ' '.join(self.dependencies)))
+                raise SatProcessError('%s requires bands: %s' % (self.name, ' '.join(self.dependencies[d])))
             geoimgs.append(geoimg)
         return geoimgs
 
