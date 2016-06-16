@@ -1,12 +1,11 @@
 
 from .scene import Scene
-from gippy import GeoImage
-from .product import Product, TOA as _TOA, NDVI, EVI, Color
+from .product import TOA as _TOA, NDVI, EVI, Color
 
 
 class TOA(_TOA):
     """ Base class for Sentinel2 products from original files """
-   
+
     description = 'Sentinel2 TOA'
 
     dependencies = {}
@@ -25,7 +24,7 @@ class Sentinel2Scene(Scene):
     _available_products = {
         'toa': TOA,
         'swir': TOA,
-        'cloudbands': TOA,
+        'cbands': TOA,
         'ndvi': NDVI,
         'evi': EVI,
         'color': Color
@@ -47,9 +46,6 @@ class Sentinel2Scene(Scene):
     def __init__(self, *args, **kwargs):
         super(Sentinel2Scene, self).__init__(*args, **kwargs)
         # populate whatever products/bands available
-        fnames = self.filenames
-
-        self.add_bands('pan', ['pan'])
-        self.add_bands('swir', ['swir1', 'swir2'])
-        self.add_bands('cloudbands', ['coastal', 'cirrus'])
         self.add_bands('toa', ['blue', 'green', 'red', 'nir'])
+        self.add_bands('swir', ['swir1', 'swir2'])
+        self.add_bands('cbands', ['coastal', 'cirrus'])

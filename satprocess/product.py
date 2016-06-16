@@ -3,7 +3,6 @@
 """
 
 import os
-import re
 from gippy import GeoImage
 from gippy.algorithms import indices
 from errors import SatProcessError
@@ -43,7 +42,7 @@ class Product(object):
             geoimg = self.scene[d].process()
             # check required bands present
             if not geoimg.bands_exist(self.dependencies[d]):
-                raise SatProcessError('%s requires bands: %s' % (self.name, ' '.join(self.dependencies)))
+                raise SatProcessError('%s requires bands: %s' % (self.name, ' '.join(self.dependencies[d])))
             geoimgs.append(geoimg)
         return geoimgs
 
@@ -114,7 +113,7 @@ class Color(Product):
 
     dependencies = {'toa': []}
 
-    def process(self, bands=['red', 'green', 'blue'], **kwargs):
+    def process(self, bands=['red', 'green', 'blue'], sd_stretch=2.0, **kwargs):
         """ Color does not retain the geoimg, since it could be different """
         super(Color, self).process(**kwargs)
         # dependent on these bands
@@ -122,4 +121,4 @@ class Color(Product):
         geoimgs = self.get_dependencies()
         self.filename = self.filename + ''.join([c[0] for c in bands])
         # should nodata be explicitly set to 0 here?
-        return geoimgs[0].select(bands).autoscale(1, 255).save(self.filename, dtype='byte')
+        return geoimgs[0].select(bands).autoscale(1, 255, percent=sd_stretch).save(self.filename, dtype='byte')
