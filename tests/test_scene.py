@@ -5,6 +5,7 @@ from stestdata import TestData
 from satprocess.scene import Scene
 from nose.tools import set_trace
 
+
 class TestScene(unittest.TestCase):
     """ Test default scene with DC, TOA, and NDVI products """
 
@@ -23,6 +24,16 @@ class TestScene(unittest.TestCase):
         # generic scene, so need to open those files as one of the prroducts
         scene['dc'].open()
         return scene
+
+    def test_open_directory(self):
+        """ Create scene object with the directory """
+        path = os.path.dirname(self.filenames[0])
+        scene = Scene.create_from_directory(path)
+        scene['dc'].open()
+        geoimg = scene.dc()
+        self.assertTrue(geoimg, GeoImage)
+        for b in ['B2', 'BQA', 'B11', 'B4', 'B5', 'B6', 'B7', 'B1', 'B10', 'B3', 'B8', 'B9']:
+            self.assertTrue(b in geoimg.bandnames())
 
     def test_scene(self):
         """ Create Scene object with only filenames """

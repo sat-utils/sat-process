@@ -19,7 +19,7 @@ class Scene(object):
 
     # Regular expression for matching product files with 2 groups: baename, band
     # default pattern of form basename_bandname.extension
-    _pattern = r'(.*)_(.*)\..*'
+    _pattern = r'(.*)_(.*)\.(TIF|tif|jp2)'
 
     _bandmap = {}
 
@@ -41,6 +41,15 @@ class Scene(object):
         self.filenames = dict(zip(bandnames, filenames))
         # the Scene does not open anything - use specific sensor Scene, or
         #  call Scene[product].open() to seed a product with filenames given here
+
+    @classmethod
+    def create_from_directory(cls, path):
+        """ Create a Scene object from files found in a directory """
+        if not os.path.isdir(path):
+            raise SatProcessError("directory %s does not exist" % path)
+        # match the pattern
+        filenames = [os.path.join(path, d) for d in os.listdir(path) if re.match(cls._pattern, d)]
+        return cls(filenames)
 
     def __getattr__(self, attr):
         """ Get processed products as attributes (e.g., scene.ndvi()) """
@@ -71,6 +80,7 @@ class Scene(object):
     @classmethod
     def parse_filename(cls, filename):
         """ Split out basename and bandname (remapped if in _bandmap) """
+        #from nose.tools import set_trace; set_trace()
         m = re.match(cls._pattern, os.path.basename(filename))
         basename = m.group(1)
         bandname = cls._bandmap.get(m.group(2), m.group(2))
