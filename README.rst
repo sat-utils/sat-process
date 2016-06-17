@@ -36,37 +36,37 @@ The product functions accept a filename keyword, if provided the output product 
 
 
 
-For a given Scene, see what products are available via.
+For a given Scene, see what products are available via
 
-+--------------+----------+
-| Sensor       | Products |
-+==============+==========+
++--------------+--------------------------------------------+
+| Sensor       | Products                                   |
++==============+============================================+
 | landsat8     | dc, rad, toa, color, ndvi, evi, pansharpen |
-+--------------+----------+
-| sentinel2	   | toa, color, ndvi, evi |
-+--------------+----------+
++--------------+--------------------------------------------+
+| sentinel2	   | toa, color, ndvi, evi                      |
++--------------+--------------------------------------------+
 
 Below is a list of all the products that appear across the base Scene class, Landsat8Scene, and Sentinel2Scene.
 
-+--------------+-------------------+------------------+-------------+
-| Product      | Products Required | Bands required   | Description | 
-+==============+===================+==================+=============+
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| Product      | Products Required | Bands required   | Description                                                   | 
++==============+===================+==================+===============================================================+
 | dc           |  original files   |      -           | Digital counts from the sensor, before conversion to radiance |
-+--------------+-------------------+------------------+-------------+
-| pan          |  original files   |      -           | A panchromatic band (typically higher resolution) |
-+--------------+-------------------+------------------+-------------+
-| rad          |       dc          |      -           | Apparent radiance, corrected for viewing geometry and date |
-+--------------+-------------------+------------------+-------------+
-| toa          |    rad or dc      |      -           | Top of the atmosphere reflectance |
-+--------------+-------------------+------------------+-------------+
-| color        |       any         |  any 3 bands     | A 3-band byte-scaled image (default: red, green, blue) |
-+--------------+-------------------+------------------+-------------+
-| ndvi         |       toa         |    nir, red      | Normalized Difference Vegetation Index |
-+--------------+-------------------+------------------+-------------+
-| evi          |       toa         | nir, red, blue   | Enhanced Vegetation Index |
-+--------------+-------------------+------------------+-------------+
-| pansharpen   | pan + dc/rad/toa  | red, green, blue | Pansharpened visible bands |
-+--------------+-------------------+------------------+-------------+
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| pan          |  original files   |      -           | A panchromatic band (typically higher resolution)             |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| rad          |       dc          |      -           | Apparent radiance, corrected for viewing geometry and date    |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| toa          |    rad or dc      |      -           | Top of the atmosphere reflectance                             |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| color        |       any         |  any 3 bands     | A 3-band byte-scaled image (default: red, green, blue)        |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| ndvi         |       toa         |    nir, red      | Normalized Difference Vegetation Index                        |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| evi          |       toa         | nir, red, blue   | Enhanced Vegetation Index                                     |
++--------------+-------------------+------------------+---------------------------------------------------------------+
+| pansharpen   | pan + dc/rad/toa  | red, green, blue | Pansharpened visible bands                                    |
++--------------+-------------------+------------------+---------------------------------------------------------------+
 
 
 Band Names
