@@ -1,6 +1,6 @@
 import os
 import re
-import .product as p
+import satprocess.product as p
 from errors import SatProcessError
 
 
