@@ -22,6 +22,7 @@ Examples
     from satio.landsat8 import Landsat8
 
     filenames = [
+        'LC80420362016069LGN00_BQA.TIF',
         'LC80420362016069LGN00_B11.TIF',
         'LC80420362016069LGN00_B10.TIF',
         'LC80420362016069LGN00_B9.TIF',
@@ -44,7 +45,7 @@ Examples
     # Landsat 8 automatically names each file if the band number is includes in the filename
 
     print(scene.bands)
-    # ['B11', 'B10', 'cirrus', 'pan', 'swir2', 'swir1', 'nir', 'red', 'green', 'blue', 'coastal']
+    # ['quality', 'B11', 'B10', 'cirrus', 'pan', 'swir2', 'swir1', 'nir', 'red', 'green', 'blue', 'coastal']
 
     # select red, green and blue bands, color correct and then save them
     cloud = scene.snow_cloud_coverage()
