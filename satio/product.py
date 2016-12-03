@@ -38,10 +38,12 @@ class SnowCoverage(object):
         snow_mask = np.bitwise_and(quality, snow_high_conf) == snow_high_conf
         fill_mask = np.bitwise_and(quality, fill_pixels) == fill_pixels
 
-        perc = np.true_divide(np.sum(cloud_mask | snow_mask),
-                              quality.size - np.sum(fill_mask)) * 100.0
-
-        return perc
+        # prevent divide by zero errors
+        if quality.size == np.sum(fill_mask):
+            return 0
+        else:
+            return np.true_divide(np.sum(cloud_mask | snow_mask),
+                                  quality.size - np.sum(fill_mask)) * 100.0
 
 
 class ColorCorrection(object):
