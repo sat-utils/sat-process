@@ -5,6 +5,7 @@
 import numpy as np
 from utils import rescale_intensity
 from scene import Raster
+from rasterio.warp import reproject, RESAMPLING
 
 
 class Product(object):
