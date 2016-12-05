@@ -128,13 +128,14 @@ class NBR(object):
         # to match the former
         if nir.shape != swir2.shape:
             newarr = np.empty(shape=nir.shape)
-            swir2 = reproject(
+            reproject(
                 swir2, newarr,
-                src_transform=swir2.affine,
-                dst_transform=nir.affine,
-                src_crs=swir2.crs,
-                dst_crs=nir.crs,
-                resample=Resampling.bilinear)
+                src_transform=self['swir2'].affine,
+                dst_transform=self['nir'].affine,
+                src_crs=self['swir2'].crs,
+                dst_crs=self['nir'].crs,
+                resample=RESAMPLING.bilinear)
+            swir2 = newarr
 
         nbr = np.nan_to_num(np.true_divide((nir - swir2), (nir + swir2)))
 
