@@ -5,6 +5,7 @@
 import numpy as np
 from utils import rescale_intensity
 from scene import Raster
+from rasterio.warp import reproject, RESAMPLING
 
 
 class Product(object):
@@ -110,5 +111,47 @@ class NDVI(object):
             meta=self['red'].meta
         )
         self.rasters.append(ndvi_raster)
+
+        return self
+
+
+# Normalized Burn Ratio
+class NBR(object):
+
+    def nbr(self):
+        self.has_bands(['nir', 'swir2'])
+
+        nir = self['nir'].read().astype('float32')
+        swir2 = self['swir2'].read().astype('float32')
+
+        # if nir and swir2 aren't at the same resolution, reproject the latter
+        # to match the former
+        if nir.shape != swir2.shape:
+            newarr = np.empty(shape=nir.shape)
+            reproject(
+                swir2, newarr,
+                src_transform=self['swir2'].affine,
+                dst_transform=self['nir'].affine,
+                src_crs=self['swir2'].crs,
+                dst_crs=self['nir'].crs,
+                resample=RESAMPLING.bilinear)
+            swir2 = newarr
+
+        nbr = np.nan_to_num(np.true_divide((nir - swir2), (nir + swir2)))
+
+        nbr_raster = Raster(
+            bandname='nbr',
+            np_array=nbr,
+            name='nbr',
+            crs=self['nir'].crs,
+            affine=self['nir'].affine,
+            height=self['nir'].height,
+            width=self['nir'].width,
+            dtype='float32',
+            profile=self['nir'].profile,
+            bounds=self['nir'].bounds,
+            meta=self['nir'].meta
+        )
+        self.rasters.append(nbr_raster)
 
         return self
