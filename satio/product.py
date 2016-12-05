@@ -123,6 +123,18 @@ class NBR(object):
         nir = self['nir'].read().astype('float32')
         swir2 = self['swir2'].read().astype('float32')
 
+        # if nir and swir2 aren't at the same resolution, reproject the latter
+        # to match the former
+        if nir.shape != swir2.shape:
+            newarr = np.empty(shape=nir.shape)
+            swir2 = reproject(
+                swir2, newarr,
+                src_transform=swir2.transform,
+                dst_transform=nir.transform,
+                src_crs=swir2.crs,
+                dst_crs=nir.crs,
+                resample=Resampling.bilinear)
+
         nbr = np.nan_to_num(np.true_divide((nir - swir2), (nir + swir2)))
 
         nbr_raster = Raster(
