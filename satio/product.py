@@ -130,8 +130,8 @@ class NBR(object):
             newarr = np.empty(shape=nir.shape)
             swir2 = reproject(
                 swir2, newarr,
-                src_transform=swir2.transform,
-                dst_transform=nir.transform,
+                src_transform=swir2.affine,
+                dst_transform=nir.affine,
                 src_crs=swir2.crs,
                 dst_crs=nir.crs,
                 resample=Resampling.bilinear)
